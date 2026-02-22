@@ -11,7 +11,7 @@
     <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Editar Rol</h1>
 
     <x-breadcrumb.template>
-        <x-breadcrumb.item :href="route('panel')" content="Inicio" />
+        <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Inicio" />
         <x-breadcrumb.item :href="route('roles.index')" content="Roles" />
         <x-breadcrumb.item active='true' content="Editar rol" />
     </x-breadcrumb.template>

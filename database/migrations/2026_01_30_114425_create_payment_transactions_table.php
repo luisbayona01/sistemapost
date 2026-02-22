@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      *
@@ -35,11 +34,11 @@ return new class extends Migration
                 ->default('CASH')
                 ->comment('Método de pago: efectivo, tarjeta física, Stripe, etc');
 
-            $table->string('stripe_payment_intent_id', 255)
+            $table->string('stripe_payment_intent_id', 191)
                 ->nullable()
                 ->comment('ID del PaymentIntent de Stripe (si aplica)');
 
-            $table->string('stripe_charge_id', 255)
+            $table->string('stripe_charge_id', 191)
                 ->nullable()
                 ->comment('ID de la carga de Stripe después de confirmada');
 

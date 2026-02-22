@@ -11,6 +11,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Movimiento extends Model
 {
+    // Tipos de Movimiento
+    public const TIPO_VENTA = 'VENTA';
+    public const TIPO_RETIRO = 'RETIRO';
+    public const TIPO_INGRESO = 'INGRESO';
+    public const TIPO_EGRESO = 'EGRESO';
+    public const TIPO_CORTESIA = 'CORTESIA';
+    public const TIPO_BAJA = 'BAJA';
+
+    // Métodos de Pago
+    public const METODO_EFECTIVO = 'EFECTIVO';
+    public const METODO_TARJETA = 'TARJETA';
+    public const METODO_TRANSFERENCIA = 'TRANSFERENCIA';
+    public const METODO_QR = 'QR';
+    public const METODO_MIXTO = 'MIXTO';
+    public const METODO_STRIPE = 'STRIPE';
+
     protected $guarded = ['id'];
 
     protected $casts = [
@@ -42,7 +58,7 @@ class Movimiento extends Model
      */
     public function venta(): BelongsTo
     {
-        return $this->belongsTo(Venta::class)->nullable();
+        return $this->belongsTo(Venta::class);
     }
 
     /**
@@ -51,8 +67,10 @@ class Movimiento extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check() && auth()->user()->empresa_id) {
-                $query->where('movimientos.empresa_id', auth()->user()->empresa_id);
+            if (auth()->check()) {
+                $query->where($query->getModel()->qualifyColumn('empresa_id'), auth()->user()->empresa_id);
+            } elseif (!app()->runningInConsole()) {
+                abort(403, 'Acceso no autorizado a datos de empresa.');
             }
         });
     }

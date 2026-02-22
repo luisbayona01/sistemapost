@@ -24,7 +24,7 @@ class StoreMovimientoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'descripcion' => 'required|max:255',
+            'descripcion' => 'required|min:10|max:255',
             'monto' => 'numeric|min:1|required',
             'metodo_pago' => ['required', new Enum(MetodoPagoEnum::class)],
             'caja_id' => 'required',

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class marcaController extends Controller
+class MarcaController extends Controller
 {
     function __construct()
     {

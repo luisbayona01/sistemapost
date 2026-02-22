@@ -10,14 +10,18 @@ class ActivityLogService
     /**
      * Registrar una actividad en mi base de datos
      */
-    public static function log(string $action, ?string $module = null, ?array $data = null, ?string $ipAddress = null, ?int $user_id = null,): void
+    public static function log(string $action, ?string $module = null, ?array $data = null, ?string $ipAddress = null, ?int $user_id = null): void
     {
+        $user = Auth::check() ? Auth::user() : null;
+
         ActivityLog::create([
-            'user_id' => $user_id ?? Auth::user()->id,
+            'user_id' => $user_id ?? ($user ? $user->id : null),
+            'empresa_id' => $user ? $user->empresa_id : null, // FASE 4.1: Auditoría multiempresa
             'action' => $action,
             'module' => $module,
             'data' => $data ? self::sanitizeData($data) : null,
             'ip_address' => $ipAddress ?? request()->ip(),
+            'user_agent' => request()->userAgent(),
         ]);
     }
 

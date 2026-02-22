@@ -22,6 +22,24 @@ class PaymentTransaction extends Model
     ];
 
     /**
+     * Seguridad: Las transacciones exitosas son inmutables
+     */
+    protected static function booted()
+    {
+        static::updating(function ($transaction) {
+            if ($transaction->getOriginal('status') === 'SUCCESS') {
+                throw new \Exception('No se puede modificar una transacción de pago exitosa (Inmutable).');
+            }
+        });
+
+        static::deleting(function ($transaction) {
+            if ($transaction->status === 'SUCCESS') {
+                throw new \Exception('No se puede eliminar una transacción de pago exitosa (Auditoría Crítica).');
+            }
+        });
+    }
+
+    /**
      * Relación: Transacción pertenece a una empresa
      */
     public function empresa(): BelongsTo

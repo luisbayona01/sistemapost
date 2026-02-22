@@ -51,10 +51,21 @@ class Handler extends ExceptionHandler
 
         $this->renderable(function (NotFoundHttpException $e, Request $request) {
             return response()->view('errors.404', [], 404);
+        });
 
-            return response()->view('errors.401', [], 401);
+        $this->renderable(function (\Throwable $e, Request $request) {
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => 'Unauthenticated.'], 401);
+                }
+                return redirect()->guest(route('login.index'));
+            }
 
-            return response()->view('errors.500', [], 500);
+            if (app()->environment('production')) {
+                return response()->view('errors.500', [], 500);
+            }
+
+            return null; // Let default handler handle it in dev
         });
     }
 }

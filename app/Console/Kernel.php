@@ -16,6 +16,33 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        $schedule->command('inventory:restock-alert')->weeklyOn(1, '08:00');
+
+        // Expirar ventas web pendientes cada 15 minutos
+        $schedule->job(new \App\Jobs\ExpireStaleWebSales)
+            ->everyFifteenMinutes()
+            ->withoutOverlapping();
+
+        // Validación de integridad de inventario diaria
+        $schedule->command('app:validate-inventory-integrity')
+            ->dailyAt('02:00')
+            ->withoutOverlapping();
+
+        // 🎬 CRÍTICO: Liberar asientos (Ghost Seats) - Hardening Fase 4
+        $schedule->command('cinema:clean-seats')
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/cinema-clean.log'));
+
+        // 🧠 MÓDULO 3: Generar Alertas de Inteligencia Operativa
+        $schedule->job(new \App\Jobs\GenerarAlertasAutomaticas)
+            ->hourly()
+            ->withoutOverlapping();
+
+        // Procesar contingencias fiscales cada 15 minutos (Fase 5)
+        $schedule->command('fiscal:procesar-contingencias')
+            ->everyFifteenMinutes()
+            ->withoutOverlapping();
     }
 
     /**
@@ -25,7 +52,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }

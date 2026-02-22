@@ -1,160 +1,176 @@
-<aside
-    id="layoutSidenav_nav"
-    class="w-64 bg-white text-gray-900 shadow-lg hidden md:flex md:flex-col h-screen fixed left-0 top-16 z-40 border-r border-gray-200 overflow-y-auto">
-    <nav class="flex flex-col h-full">
+<aside id="layoutSidenav_nav"
+    class="w-64 bg-slate-900 text-white shadow-xl flex flex-col h-screen fixed left-0 top-16 z-40 border-r border-slate-800 transition-transform duration-300 overflow-y-auto -translate-x-full"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+    <nav class="flex flex-col h-full font-light">
         <!-- Main Navigation -->
-        <div class="flex-1 overflow-y-auto px-4 py-6 space-y-2">
-            <!-- Inicio Section -->
-            <x-nav.heading>Inicio</x-nav.heading>
-            <x-nav.nav-link
-                content='Panel'
-                icon='fas fa-chart-line'
-                :href="route('panel')" />
+        <div class="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+            @auth
+                <!-- Dashboard -->
+                <div>
+                    <x-nav.nav-link content='Panel Administrativo' icon='fas fa-chart-pie'
+                        :href="route('admin.dashboard.index')" class="text-white hover:text-emerald-400" />
 
-            <!-- Módulos Section -->
-            <x-nav.heading>Catálogos</x-nav.heading>
+                    @if(auth()->user()->hasRole('Root'))
+                        <x-nav.nav-link content='Módulos del Sistema' icon='fas fa-cubes' :href="route('admin.modulos.index')"
+                            class="text-emerald-400 font-bold" />
+                    @endif
+                    @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                        <x-nav.nav-link content='Control Ejecutivo (Móvil)' icon='fas fa-mobile-alt text-emerald-400'
+                            :href="route('executive.dashboard')" />
+                    @endif
+                </div>
+            @endauth
 
-            @can('ver-categoria')
-            <x-nav.nav-link
-                content='Categorías'
-                icon='fa-solid fa-tag'
-                :href="route('categorias.index')" />
-            @endcan
+            <!-- PUNTO DE VENTA (Priority) -->
+            @if(\App\Helpers\ModuleHelper::isEnabled('pos'))
+                <div class="pt-2">
+                    <x-nav.nav-link content='Ventas (POS)' icon='fas fa-cash-register' :href="route('pos.index')"
+                        class="text-emerald-400 font-black text-lg py-3" />
+                </div>
+            @endif
 
-            @can('ver-presentacione')
-            <x-nav.nav-link
-                content='Presentaciones'
-                icon='fa-solid fa-box'
-                :href="route('presentaciones.index')" />
-            @endcan
+            <!-- Módulo CINE -->
+            @if(\App\Helpers\ModuleHelper::isEnabled('cinema'))
+                <div class="pt-2">
+                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Boletería & Cine</p>
 
-            @can('ver-marca')
-            <x-nav.nav-link
-                content='Marcas'
-                icon='fa-solid fa-tag'
-                :href="route('marcas.index')" />
-            @endcan
+                    <div class="px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <x-nav.nav-link content='Cartelera (Horarios)' icon='fas fa-calendar-alt'
+                            :href="route('funciones.index')" />
 
-            @can('ver-producto')
-            <x-nav.nav-link
-                content='Productos'
-                icon='fa-solid fa-cube'
-                :href="route('productos.index')" />
-            @endcan
+                        @can('crear-producto')
+                            <x-nav.nav-link content='Añadir Película' icon='fas fa-plus-circle'
+                                :href="route('peliculas.create')" />
+                        @endcan
 
-            <!-- Inventario Section -->
-            <x-nav.heading>Inventario</x-nav.heading>
+                        @can('ver-producto')
+                            <x-nav.nav-link content='Catálogo de Cintas' icon='fas fa-film' :href="route('peliculas.index')" />
+                        @endcan
 
-            @can('ver-inventario')
-            <x-nav.nav-link
-                content='Inventario'
-                icon='fa-solid fa-warehouse'
-                :href="route('inventario.index')" />
-            @endcan
+                        <x-nav.nav-link content='Distribuidores (Cine)' icon='fas fa-truck-loading'
+                            :href="route('distribuidores.index')" />
 
-            @can('ver-kardex')
-            <x-nav.nav-link
-                content='Kardex'
-                icon='fa-solid fa-book'
-                :href="route('kardex.index')" />
-            @endcan
+                        @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                            <x-nav.nav-link content='Tarifas de Entrada' icon='fas fa-ticket-alt'
+                                :href="route('admin.tarifas.index')" />
+                        @endif
+                    </div>
+                </div>
+            @endif
 
-            <!-- Operaciones Section -->
-            <x-nav.heading>Operaciones</x-nav.heading>
+            <!-- Inventario & Productos -->
+            @if(\App\Helpers\ModuleHelper::isEnabled('pos') || \App\Helpers\ModuleHelper::isEnabled('inventory'))
+                <div class="pt-2">
+                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Dulcería & Snacks</p>
 
-            @can('ver-cliente')
-            <x-nav.nav-link
-                content='Clientes'
-                icon='fa-solid fa-users'
-                :href="route('clientes.index')" />
-            @endcan
+                    @can('ver-producto')
+                        <x-nav.nav-link content='Productos (Dulcería)' icon='fas fa-cookie-bite'
+                            :href="route('productos.index')" />
+                    @endcan
 
-            @can('ver-proveedore')
-            <x-nav.nav-link
-                content='Proveedores'
-                icon='fa-solid fa-person-dolly'
-                :href="route('proveedores.index')" />
-            @endcan
+                    @can('ver-inventario')
+                        <x-nav.nav-link content='Inventario / Stock' icon='fas fa-boxes' :href="route('inventario.index')" />
+                        <x-nav.nav-link content='Carga Masiva (Excel)' icon='fas fa-file-import'
+                            :href="route('inventario.carga-masiva.index')" />
+                    @endcan
 
-            @can('ver-caja')
-            <x-nav.nav-link
-                content='Cajas'
-                icon='fa-solid fa-cash-register'
-                :href="route('cajas.index')" />
-            @endcan
+                    @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                        <x-nav.nav-link content='Facturas de Compra' icon='fas fa-file-invoice-dollar'
+                            :href="route('admin.facturas.index')" />
+                        <x-nav.nav-link content='Proveedores (General)' icon='fas fa-id-card'
+                            :href="route('proveedores.index')" />
+                    @endif
 
-            <!-- Transacciones Section -->
-            <x-nav.heading>Transacciones</x-nav.heading>
+                    @can('ver-inventario')
+                        @if(\App\Helpers\ModuleHelper::isEnabled('inventory'))
+                            <x-nav.link-collapsed id="collapseConfiteria" icon="fa-solid fa-boxes-stacked"
+                                content="Gestión de Insumos">
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.index')" content="Escritorio IA" />
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.almacen')" content="Inventario" />
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.cocina')" content="Costos y Recetas" />
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.auditoria')"
+                                    content="Auditoría de Fugas" />
+                            </x-nav.link-collapsed>
+                        @endif
+                    @endcan
+                </div>
+            @endif
 
-            @can('ver-compra')
-            <x-nav.link-collapsed
-                id="collapseCompras"
-                icon="fa-solid fa-shopping-cart"
-                content="Compras">
-                @can('ver-compra')
-                <x-nav.link-collapsed-item :href="route('compras.index')" content="Listar" />
-                @endcan
-                @can('crear-compra')
-                <x-nav.link-collapsed-item :href="route('compras.create')" content="Nueva" />
-                @endcan
-            </x-nav.link-collapsed>
-            @endcan
 
-            @can('ver-venta')
-            <x-nav.link-collapsed
-                id="collapseVentas"
-                icon="fa-solid fa-receipt"
-                content="Ventas">
+            <!-- Auditoría y Ventas -->
+            <div class="pt-2">
+                <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Auditoría Técnica</p>
+
                 @can('ver-venta')
-                <x-nav.link-collapsed-item :href="route('ventas.index')" content="Listar" />
+                    @if(\App\Helpers\ModuleHelper::isEnabled('pos'))
+                        <x-nav.link-collapsed id="collapseVentas" icon="fa-solid fa-history" content="Transacciones">
+                            <x-nav.link-collapsed-item :href="route('ventas.index')" content="Ventas del Día" />
+                            <x-nav.link-collapsed-item :href="route('admin.devoluciones.index')" content="Devoluciones" />
+                        </x-nav.link-collapsed>
+                    @endif
                 @endcan
-                @can('crear-venta')
-                <x-nav.link-collapsed-item :href="route('ventas.create')" content="Nueva" />
-                @endcan
-            </x-nav.link-collapsed>
-            @endcan
 
-            <!-- Administración Section -->
-            @hasrole('administrador')
-            <x-nav.heading>Administración</x-nav.heading>
+                @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                    @if(\App\Helpers\ModuleHelper::isEnabled('reports'))
+                        <x-nav.link-collapsed id="collapseReportes" icon="fa-solid fa-chart-line" content="Analítica">
+                            <x-nav.link-collapsed-item :href="route('admin.reportes.consolidado')"
+                                content="Reporte de Ventas" />
 
-            @can('ver-empresa')
-            <x-nav.nav-link
-                content='Empresa'
-                icon='fa-solid fa-building'
-                :href="route('empresa.index')" />
-            @endcan
+                            @if(\App\Helpers\ModuleHelper::isEnabled('cinema'))
+                                <x-nav.link-collapsed-item :href="route('admin.reportes.cinema')" content="Ocupación de Cine" />
+                                <x-nav.link-collapsed-item :href="route('admin.reportes.peliculas')"
+                                    content="Ventas por Película" />
+                            @endif
 
-            @can('ver-empleado')
-            <x-nav.nav-link
-                content='Empleados'
-                icon='fa-solid fa-people-group'
-                :href="route('empleados.index')" />
-            @endcan
-
-            @can('ver-user')
-            <x-nav.nav-link
-                content='Usuarios'
-                icon='fa-solid fa-user-shield'
-                :href="route('users.index')" />
-            @endcan
-
-            @can('ver-role')
-            <x-nav.nav-link
-                content='Roles'
-                icon='fa-solid fa-shield'
-                :href="route('roles.index')" />
-            @endcan
-            @endhasrole
-        </div>
-
-        <!-- User Footer -->
-        <div class="border-t border-gray-200 p-4 space-y-3 bg-gradient-to-br from-gray-50 to-gray-100">
-            <div class="px-2">
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Usuario actual</p>
-                <p class="text-sm font-bold text-gray-900 mt-2 truncate">{{ auth()->user()->name }}</p>
-                <p class="text-xs text-gray-600 truncate mt-1">{{ auth()->user()->email }}</p>
+                            @if(\App\Helpers\ModuleHelper::isEnabled('pos'))
+                                <x-nav.link-collapsed-item :href="route('admin.reportes.confiteria')"
+                                    content="Ventas de Dulcería" />
+                            @endif
+                        </x-nav.link-collapsed>
+                    @endif
+                @endif
             </div>
+
+            <!-- Finanzas & Caja -->
+            @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador', 'cajero']))
+                <div class="pt-2">
+                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Finanzas & Caja</p>
+                    <div class="px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <x-nav.nav-link content='Control de Cajas' icon='fas fa-vault' :href="route('admin.cajas.index')" />
+                        @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                            <x-nav.nav-link content='Cierre de Jornada' icon='fas fa-check-double'
+                                :href="route('admin.cajas.cierre-dia')" />
+                            <x-nav.nav-link content='Reporte Fiscal INC' icon='fas fa-file-invoice'
+                                :href="route('reports.fiscal.inc')" />
+                        @endif
+                    </div>
+                </div>
+            @endif
+
+            <!-- Ajustes -->
+            <div class="pt-2">
+                <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Corporativo</p>
+                @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
+                    <x-nav.nav-link content='Datos Empresa' icon='fas fa-building' :href="route('empresa.index')" />
+                    <x-nav.nav-link content='Gente & Perfiles' icon='fas fa-users-cog' :href="route('users.index')" />
+                @endif
+            </div>
+
         </div>
+
+        @auth
+            <!-- User Footer -->
+            <div class="border-t border-slate-800 p-4 bg-slate-900 bg-opacity-50">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold">
+                        {{ substr(auth()->user()->name, 0, 1) }}
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-black text-white truncate">{{ auth()->user()->name }}</p>
+                        <p class="text-[10px] text-slate-500 truncate uppercase font-bold">Terminal Activa</p>
+                    </div>
+                </div>
+            </div>
+        @endauth
     </nav>
 </aside>

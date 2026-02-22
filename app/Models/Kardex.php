@@ -42,6 +42,14 @@ class Kardex extends Model
     }
 
     /**
+     * Relación: Kardex pertenece a un insumo
+     */
+    public function insumo(): BelongsTo
+    {
+        return $this->belongsTo(Insumo::class);
+    }
+
+    /**
      * Global scope: Filtrar kardex por empresa del usuario autenticado
      */
     protected static function booted(): void
@@ -75,6 +83,14 @@ class Kardex extends Model
     public function scopeByProducto($query, int $productoId)
     {
         return $query->where('producto_id', $productoId);
+    }
+
+    /**
+     * Scope: Obtener kardex por insumo
+     */
+    public function scopeByInsumo($query, int $insumoId)
+    {
+        return $query->where('insumo_id', $insumoId);
     }
 
     /**
@@ -117,34 +133,45 @@ class Kardex extends Model
         $entrada = null;
         $salida = null;
         $saldo = null;
+        $productoId = $data['producto_id'] ?? null;
+        $insumoId = $data['insumo_id'] ?? null;
 
-        $ultimoRegistro = $this->where('producto_id', $data['producto_id'])
+        $ultimoRegistro = $this->when($productoId, fn($q) => $q->where('producto_id', $productoId))
+            ->when($insumoId, fn($q) => $q->where('insumo_id', $insumoId))
             ->latest('id')
             ->first();
 
-        $saldo = $ultimoRegistro ? $ultimoRegistro->saldo : $data['cantidad'];
+        $saldoAnterior = $ultimoRegistro ? $ultimoRegistro->saldo : 0;
+        $saldo = $saldoAnterior;
 
-        if ($tipo == TipoTransaccionEnum::Compra) {
+        if ($tipo == TipoTransaccionEnum::Compra || $tipo == TipoTransaccionEnum::Apertura) {
             $entrada = $data['cantidad'];
             $saldo += $entrada;
-        } elseif ($tipo == TipoTransaccionEnum::Venta || $tipo == TipoTransaccionEnum::Ajuste) {
+        } elseif ($tipo == TipoTransaccionEnum::Venta || $tipo == TipoTransaccionEnum::Ajuste || $tipo == TipoTransaccionEnum::Auditoria) {
+            // En Auditoría, la 'cantidad' pasada podría ser la diferencia o un ajuste neto. 
+            // Para simplicidad, asumimos que 'cantidad' es el movimiento relativo.
             $salida = $data['cantidad'];
             $saldo -= $salida;
         }
 
         try {
             $this->create([
-                'empresa_id' => auth()->check() ? auth()->user()->empresa_id : $data['empresa_id'],
-                'producto_id' => $data['producto_id'],
+                'empresa_id' => auth()->check() ? auth()->user()->empresa_id : ($data['empresa_id'] ?? null),
+                'producto_id' => $productoId,
+                'insumo_id' => $insumoId,
                 'tipo_transaccion' => $tipo,
-                'descripcion_transaccion' => $this->getDescripcionTransaccion($data, $tipo),
+                'descripcion_transaccion' => $data['descripcion'] ?? $this->getDescripcionTransaccion($data, $tipo),
                 'entrada' => $entrada,
                 'salida' => $salida,
                 'saldo' => $saldo,
                 'costo_unitario' => $data['costo_unitario'],
+                'created_at' => $data['fecha'] ?? now(),
             ]);
         } catch (Exception $e) {
-            Log::error('Error al crear un registro en el kardex', ['error' => $e->getMessage()]);
+            Log::error('Error al crear un registro en el kardex', [
+                'error' => $e->getMessage(),
+                'data' => $data
+            ]);
         }
     }
 
@@ -165,7 +192,10 @@ class Kardex extends Model
                 $descripcion = 'Salida de producto por la venta n°' . ($data['venta_id'] ?? '');
                 break;
             case TipoTransaccionEnum::Ajuste:
-                $descripcion = 'Ajuste de producto';
+                $descripcion = 'Ajuste de inventario: ' . ($data['motivo'] ?? '');
+                break;
+            case TipoTransaccionEnum::Auditoria:
+                $descripcion = 'Ajuste por Auditoría n°' . ($data['auditoria_id'] ?? '');
                 break;
         }
 
@@ -177,10 +207,16 @@ class Kardex extends Model
      */
     public function calcularPrecioVenta(int $producto_id): float
     {
-        $costoUltimoRegistro = $this->where('producto_id', $producto_id)
+        $ultimoRegistro = $this->where('producto_id', $producto_id)
             ->latest('id')
-            ->first()
-            ->costo_unitario;
+            ->first();
+
+        // Si no hay registros previos, devolvemos el precio actual del producto o 0
+        if (!$ultimoRegistro) {
+            return (float) Producto::where('id', $producto_id)->value('precio') ?? 0.0;
+        }
+
+        $costoUltimoRegistro = (float) $ultimoRegistro->costo_unitario;
 
         return $costoUltimoRegistro + round($costoUltimoRegistro * self::MARGEN_GANANCIA, 2);
     }

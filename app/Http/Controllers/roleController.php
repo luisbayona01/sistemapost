@@ -12,7 +12,7 @@ use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Throwable;
 
-class roleController extends Controller
+class RoleController extends Controller
 {
     function __construct()
     {
@@ -57,7 +57,7 @@ class roleController extends Controller
             //Crear rol
             $rol = Role::create(['name' => $request->name]);
             //Asignar permisos
-            $rol->syncPermissions(array_map(fn($value) => (int)$value, $request->permission));
+            $rol->syncPermissions(array_map(fn($value) => (int) $value, $request->permission));
 
             DB::commit();
             ActivityLogService::log('Creación de rol', 'Roles', $request->all());
@@ -101,7 +101,7 @@ class roleController extends Controller
             //Actualizar rol
             $role->update(['name' => $request->name]);
             //Actualizar permisos
-            $role->syncPermissions(array_map(fn($value) => (int)$value, $request->permission));
+            $role->syncPermissions(array_map(fn($value) => (int) $value, $request->permission));
 
             DB::commit();
             ActivityLogService::log('Edición de rol', 'Roles', $request->all());

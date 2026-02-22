@@ -53,11 +53,15 @@
                         <p class="text-3xl font-bold text-gray-900">{{ $value }}</p>
 
                         @if($trend && $trendValue)
-                        <span @class([
-                            'inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full',
-                            'text-green-700 bg-green-50' => $trend === 'up',
-                            'text-red-700 bg-red-50' => $trend === 'down',
-                        ])>
+                            @php
+                                $trendClass = 'inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ';
+                                if ($trend === 'up') {
+                                    $trendClass .= 'text-green-700 bg-green-50';
+                                } elseif ($trend === 'down') {
+                                    $trendClass .= 'text-red-700 bg-red-50';
+                                }
+                            @endphp
+                        <span class="{{ $trendClass }}">
                             @if($trend === 'up')
                             <i class="fas fa-arrow-trend-up"></i>
                             @elseif($trend === 'down')

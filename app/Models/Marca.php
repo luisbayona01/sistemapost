@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\HasEmpresaScope;
+
 class Marca extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
-    protected $fillable = ['caracteristica_id'];
+    protected $fillable = ['caracteristica_id', 'empresa_id'];
 
     public function productos(): HasMany
     {
@@ -22,5 +24,5 @@ class Marca extends Model
     {
         return $this->belongsTo(Caracteristica::class);
     }
-    
+
 }

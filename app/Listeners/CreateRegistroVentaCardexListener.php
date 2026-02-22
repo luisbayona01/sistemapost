@@ -26,10 +26,11 @@ class CreateRegistroVentaCardexListener
         //Crear un nuevo registro en mi tabla Kardex, pero de tipo venta
         $kardex = new Kardex();
 
-        $costoUnitario = $kardex->where('producto_id', $event->producto_id)
+        $ultimoRegistro = Kardex::where('producto_id', $event->producto_id)
             ->latest('id')
-            ->first()
-            ->costo_unitario;
+            ->first();
+
+        $costoUnitario = $ultimoRegistro ? $ultimoRegistro->costo_unitario : 0;
 
         $kardex->crearRegistro(
             [

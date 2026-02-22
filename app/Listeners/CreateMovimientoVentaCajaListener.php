@@ -25,7 +25,18 @@ class CreateMovimientoVentaCajaListener
      */
     public function handle(CreateVentaEvent $event): void
     {
-        $caja = Caja::where('user_id', Auth::id())->where('estado', 1)->first();
+        $venta = $event->venta;
+
+        // ⚠️ PROTECCIÓN: Verificar que no se haya creado el movimiento antes (Idempotencia)
+        if ($venta->movimiento_creado_at) {
+            Log::warning('Intento de duplicación de movimiento bloqueado', [
+                'venta_id' => $venta->id,
+                'movimiento_creado_at' => $venta->movimiento_creado_at
+            ]);
+            return;
+        }
+
+        $caja = Caja::where('user_id', Auth::id())->where('estado', 'ABIERTA')->first();
 
         if (!$caja) {
             Log::warning('Evento de venta sin caja abierta', ['user_id' => Auth::id()]);
@@ -35,10 +46,19 @@ class CreateMovimientoVentaCajaListener
         try {
             Movimiento::create([
                 'tipo' => TipoMovimientoEnum::Venta,
-                'descripcion' => 'Venta n° ' . $event->venta->numero_comprobante,
-                'monto' => $event->venta->total,
-                'metodo_pago' => $event->venta->metodo_pago,
+                'descripcion' => 'Venta n° ' . $venta->numero_comprobante,
+                'monto' => $venta->total,
+                'metodo_pago' => $venta->metodo_pago,
                 'caja_id' => $caja->id
+            ]);
+
+            // Marcar que el movimiento ya fue creado (FASE 4.1)
+            $venta->update(['movimiento_creado_at' => now()]);
+
+            Log::info('Movimiento de caja creado exitosamente', [
+                'venta_id' => $venta->id,
+                'caja_id' => $caja->id,
+                'monto' => $venta->total
             ]);
         } catch (Exception $e) {
             Log::error(

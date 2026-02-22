@@ -12,6 +12,7 @@ use App\Services\ActivityLogService;
 use App\Services\ProductoService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use App\Models\Distribuidor;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -37,7 +38,8 @@ class ProductoController extends Controller
             'marca.caracteristica',
             'presentacione.caracteristica'
         ])
-            ->latest()
+            ->where('es_venta_retail', true)
+            ->orderBy('nombre', 'asc')
             ->get();
 
         return view('producto.index', compact('productos'));
@@ -63,7 +65,9 @@ class ProductoController extends Controller
             ->where('c.estado', 1)
             ->get();
 
-        return view('producto.create', compact('marcas', 'presentaciones', 'categorias'));
+        $distribuidores = Distribuidor::where('activo', 1)->get();
+
+        return view('producto.create', compact('marcas', 'presentaciones', 'categorias', 'distribuidores'));
     }
 
     /**
@@ -109,7 +113,9 @@ class ProductoController extends Controller
             ->where('c.estado', 1)
             ->get();
 
-        return view('producto.edit', compact('producto', 'marcas', 'presentaciones', 'categorias'));
+        $distribuidores = Distribuidor::where('activo', 1)->get();
+
+        return view('producto.edit', compact('producto', 'marcas', 'presentaciones', 'categorias', 'distribuidores'));
     }
 
     /**
@@ -150,5 +156,19 @@ class ProductoController extends Controller
         }
 
         return redirect()->route('productos.index')->with('success', $message);*/
+    }
+
+    public function toggleStatus(Producto $producto): RedirectResponse
+    {
+        try {
+            $nuevoEstado = !$producto->estado;
+            $producto->update(['estado' => $nuevoEstado]);
+
+            $mensaje = $nuevoEstado ? 'Producto activado correctamente' : 'Producto desactivado correctamente';
+            return redirect()->back()->with('success', $mensaje);
+        } catch (Throwable $e) {
+            Log::error('Error al cambiar estado del producto', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Error al cambiar el estado');
+        }
     }
 }

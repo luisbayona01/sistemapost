@@ -7,34 +7,38 @@ use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-class loginController extends Controller
+class LoginController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('check-user-estado', ['only' => ['login']]);
+        // El estado se valida dentro del método login post-Auth
     }
 
     public function index(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route('panel');
+            return redirect()->route('admin.dashboard.index');
         }
         return view('auth.login');
     }
 
     public function login(loginRequest $request): RedirectResponse
     {
-        $credentials = $request->only('email','password');
-        $validated = Auth::validate($credentials);
+        $credentials = $request->only('username', 'password');
 
-        if (!$validated) {
-            return redirect()->to('login')->withErrors('Credenciales incorrectas');
+        if (Auth::attempt($credentials)) {
+            $user = Auth::user();
+
+            // 🛡️ VALIDACIÓN DE ESTADO (User & Empresa)
+            // User.estado: 1=activo, Empresa.estado: 'activa'
+            if ($user->estado != 1 || ($user->empresa && $user->empresa->estado != 'activa')) {
+                Auth::logout();
+                return redirect()->back()->withErrors('Su cuenta o empresa se encuentra inactiva.');
+            }
+
+            return redirect()->intended(route('admin.dashboard.index'))->with('login', 'Bienvenido ' . $user->name);
         }
 
-        //Crear una sesión
-        $user = Auth::getProvider()->retrieveByCredentials($credentials);
-        Auth::login($user);
-
-        return redirect()->route('panel')->with('login', 'Bienvenido ' . $user->name);
+        return redirect()->route('login.index')->withErrors('Credenciales incorrectas');
     }
 }

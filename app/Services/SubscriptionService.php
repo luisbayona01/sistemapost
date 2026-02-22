@@ -60,6 +60,17 @@ class SubscriptionService
                 'estado_suscripcion' => $this->mapStripeStatus($stripeSubscription->status),
             ];
         } catch (\Exception $e) {
+            // FALLBACK PARA DESARROLLO LOCAL
+            // Si falla Stripe (ej. keys expiradas) y estamos en local, simulamos éxito
+            if (config('app.env') === 'local') {
+                return [
+                    'success' => true,
+                    'stripe_customer_id' => 'cus_test_' . \Illuminate\Support\Str::random(10),
+                    'stripe_subscription_id' => 'sub_test_' . \Illuminate\Support\Str::random(10),
+                    'estado_suscripcion' => 'trial',
+                ];
+            }
+
             return [
                 'success' => false,
                 'error' => $e->getMessage(),
@@ -93,7 +104,7 @@ class SubscriptionService
                 // Crear suscripción en Stripe
                 $subscriptionResult = $this->createSubscription([
                     'plan_id' => $planId,
-                    'name' => $empresa->razon_social,
+                    'name' => $empresa->nombre,
                     'email' => $userData['email'],
                 ]);
 
@@ -113,7 +124,7 @@ class SubscriptionService
                 $usuario = User::create(array_merge($userData, [
                     'empresa_id' => $empresa->id,
                     'password' => bcrypt($userData['password']),
-                    'estado' => 'activo',
+                    'estado' => 1,
                 ]));
 
                 // Asignar rol administrador

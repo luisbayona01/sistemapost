@@ -23,13 +23,18 @@ class UpdateProductoRequest extends FormRequest
     {
         $producto = $this->route('producto');
         return [
-            'codigo' => 'nullable|unique:productos,codigo,'.$producto->id.'|max:50',
-            'nombre' => 'required|unique:productos,nombre,'.$producto->id.'|max:255',
+            'codigo' => 'nullable|unique:productos,codigo,' . $producto->id . '|max:50',
+            'nombre' => 'required|unique:productos,nombre,' . $producto->id . '|max:255',
             'descripcion' => 'nullable|max:255',
             'img_path' => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
             'marca_id' => 'nullable|integer|exists:marcas,id',
             'presentacione_id' => 'required|integer|exists:presentaciones,id',
-            'categoria_id' => 'nullable|integer|exists:categorias,id'
+            'categoria_id' => 'nullable|integer|exists:categorias,id',
+            'gasto_operativo_fijo' => 'nullable|numeric|min:0',
+            'tipo_impuesto' => 'nullable|in:IVA,IMPOCONSUMO,EXENTO',
+            'porcentaje_impuesto' => 'nullable|numeric|min:0|max:100',
+            'precio' => 'nullable|numeric|min:0',
+            'estado' => 'nullable|boolean'
         ];
     }
 

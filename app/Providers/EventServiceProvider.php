@@ -31,13 +31,10 @@ class EventServiceProvider extends ServiceProvider
             CreateRegistroCompraCardexListener::class,
             UpdateInventarioCompraListener::class
         ],
-        CreateVentaDetalleEvent::class => [
-            CreateRegistroVentaCardexListener::class,
-            UpdateInventarioVentaListener::class
-        ],
         CreateVentaEvent::class => [
-            CreateMovimientoVentaCajaListener::class,
-            EnviarEmailClienteVentaListener::class
+            UpdateInventarioVentaListener::class,
+            EnviarEmailClienteVentaListener::class,
+            \App\Listeners\EmitirDocumentoFiscalListener::class,
         ]
     ];
 

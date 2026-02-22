@@ -10,7 +10,7 @@
     <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Inicializar Producto</h1>
 
     <x-breadcrumb.template>
-        <x-breadcrumb.item :href="route('panel')" content="Inicio" />
+        <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Inicio" />
         <x-breadcrumb.item :href="route('productos.index')" content="Productos" />
         <x-breadcrumb.item active='true' content="Inicializar producto" />
     </x-breadcrumb.template>

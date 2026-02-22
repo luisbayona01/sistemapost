@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class categoriaController extends Controller
+class CategoriaController extends Controller
 {
 
     function __construct()

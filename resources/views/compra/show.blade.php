@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title','Ver compra')
+@section('title', 'Ver compra')
 
 @push('css')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
 @endpush
 
 @section('content')
@@ -11,7 +11,7 @@
     <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Ver Compra</h1>
 
     <x-breadcrumb.template>
-        <x-breadcrumb.item :href="route('panel')" content="Inicio" />
+        <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Inicio" />
         <x-breadcrumb.item :href="route('compras.index')" content="Compras" />
         <x-breadcrumb.item active='true' content="Ver Compra" />
     </x-breadcrumb.template>
@@ -64,7 +64,7 @@
                             {{$item->nombre}}
                         </td>
                         <td class="p-3">
-                            {{$item->presentacione->sigla}}
+                            {{$item->presentacione->sigla ?? 'N/A'}}
                         </td>
                         <td class="p-3">
                             {{$item->pivot->cantidad}}
@@ -114,7 +114,7 @@
     let filasSubtotal = document.getElementsByClassName('td-subtotal');
     let cont = 0;
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         calcularValores();
     });
 

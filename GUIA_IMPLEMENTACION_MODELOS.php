@@ -361,7 +361,7 @@ class Caja extends Model
     public function cerrar()
     {
         $this->saldo_final = $this->calcularSaldoFinal();
-        $this->fecha_hora_cierre = now();
+        $this->fecha_cierre = now();
         $this->estado = false;
         $this->save();
 

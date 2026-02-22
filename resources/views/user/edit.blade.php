@@ -9,7 +9,7 @@
 <div class="container-fluid px-4">
     <h1 class="mt-4 text-center">Editar Usuario</h1>
     <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('panel') }}">Inicio</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('admin.dashboard.index') }}">Inicio</a></li>
         <li class="breadcrumb-item"><a href="{{ route('users.index')}}">Usuarios</a></li>
         <li class="breadcrumb-item active">Editar Usuario</li>
     </ol>
@@ -46,24 +46,24 @@
                     </div>
                 </div>
 
-                <!---Email---->
+                <!---Username---->
                 <div class="row mb-4">
-                    <label for="email" class="col-lg-2 col-form-label">
-                        Email:</label>
+                    <label for="username" class="col-lg-2 col-form-label">
+                        Usuario (Login):</label>
                     <div class="col-lg-4">
-                        <input type="email"
-                            name="email"
-                            id="email"
+                        <input type="text"
+                            name="username"
+                            id="username"
                             class="form-control"
-                            value="{{old('email',$user->email)}}">
+                            value="{{old('username',$user->username)}}">
                     </div>
                     <div class="col-lg-4">
                         <div class="form-text">
-                            Dirección de correo eléctronico
+                            Nombre de usuario para iniciar sesión
                         </div>
                     </div>
                     <div class="col-lg-2">
-                        @error('email')
+                        @error('username')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror
                     </div>

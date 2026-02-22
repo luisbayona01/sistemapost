@@ -217,7 +217,7 @@ class VentasControllerTest extends TestCase
     {
         $this->actingAs($this->userEmpresa1);
 
-        $saldoInicial = $this->cajaEmpresa1->saldo_inicial;
+        $saldoInicial = $this->cajaEmpresa1->monto_inicial;
 
         $ventaData = [
             'cliente_id' => $this->cliente->id,
@@ -276,8 +276,8 @@ class VentasControllerTest extends TestCase
         $this->cajaEmpresa1->update(['estado' => 'cerrada']);
         $this->cajaEmpresa1->refresh();
 
-        // EXPECTED: saldo_final = saldo_inicial + (100 + 200) - 50
-        $esperado = $this->cajaEmpresa1->saldo_inicial + (100 + 200) - 50;
+        // EXPECTED: saldo_final = monto_inicial + (100 + 200) - 50
+        $esperado = $this->cajaEmpresa1->monto_inicial + (100 + 200) - 50;
         $this->assertEquals($esperado, $this->cajaEmpresa1->saldo_final);
     }
 

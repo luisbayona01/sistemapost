@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 use Throwable;
 
-class userController extends Controller
+class UserController extends Controller
 {
     function __construct()
     {
@@ -56,7 +56,7 @@ class userController extends Controller
     {
         DB::beginTransaction();
         try {
-            $request->merge(['password' =>  Hash::make($request->password)]);
+            $request->merge(['password' => Hash::make($request->password)]);
             $user = User::create($request->all());
             $user->assignRole($request->role);
 
@@ -95,13 +95,12 @@ class userController extends Controller
         DB::beginTransaction();
         try {
 
-            /*Comprobar el password y aplicar el Hash*/
-            if (empty($request->password)) {
-                $request = Arr::except($request, array('password'));
-            } else {
-                $request->merge(['password' => Hash::make($request->password)]);
+            $data = $request->except('password'); // Start with all data except password
+            if (!empty($request->password)) { // Only hash and include password if it's not empty
+                $data['password'] = Hash::make($request->password);
             }
-            $user->update($request->all());
+
+            $user->update($data);
             $user->syncRoles([$request->role]);
 
             DB::commit();

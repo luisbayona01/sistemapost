@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\HasEmpresaScope;
+
 class Categoria extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
-    protected $fillable = ['caracteristica_id'];
+    protected $fillable = ['caracteristica_id', 'empresa_id'];
 
     public function productos(): HasMany
     {
@@ -21,5 +23,10 @@ class Categoria extends Model
     public function caracteristica(): BelongsTo
     {
         return $this->belongsTo(Caracteristica::class);
+    }
+
+    public function getNombreAttribute(): string
+    {
+        return $this->caracteristica->nombre ?? 'Sin Nombre';
     }
 }

@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\HasEmpresaScope;
+
 class Proveedore extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
     protected $fillable = ['persona_id', 'empresa_id'];
 
@@ -36,18 +38,6 @@ class Proveedore extends Model
     public function compras(): HasMany
     {
         return $this->hasMany(Compra::class);
-    }
-
-    /**
-     * Global scope: Filtrar proveedores por empresa del usuario autenticado
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check() && auth()->user()->empresa_id) {
-                $query->where('proveedores.empresa_id', auth()->user()->empresa_id);
-            }
-        });
     }
 
     /**

@@ -33,7 +33,7 @@ class CajaControllerTest extends TestCase
         $this->actingAs($this->user);
 
         $response = $this->post(route('cajas.store'), [
-            'saldo_inicial' => 1000,
+            'monto_inicial' => 1000,
         ]);
 
         $response->assertRedirect(route('movimientos.index'));
@@ -55,7 +55,7 @@ class CajaControllerTest extends TestCase
         $this->actingAs($this->user);
 
         // Crear 1ª caja
-        $this->post(route('cajas.store'), ['saldo_inicial' => 1000]);
+        $this->post(route('cajas.store'), ['monto_inicial' => 1000]);
 
         // Intenta crear 2ª caja
         $response = $this->post(route('cajas.store'), ['saldo_initial' => 500]);
@@ -130,15 +130,15 @@ class CajaControllerTest extends TestCase
      *
      * VALIDACIÓN: Saldo no puede ser negativo
      */
-    public function test_saldo_inicial_no_puede_ser_negativo()
+    public function test_monto_inicial_no_puede_ser_negativo()
     {
         $this->actingAs($this->user);
 
         $response = $this->post(route('cajas.store'), [
-            'saldo_inicial' => -100,
+            'monto_inicial' => -100,
         ]);
 
-        $response->assertSessionHasErrors('saldo_inicial');
+        $response->assertSessionHasErrors('monto_inicial');
     }
 
     /**

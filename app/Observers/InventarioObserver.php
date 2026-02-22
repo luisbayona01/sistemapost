@@ -33,9 +33,9 @@ class InventarioObserver
         $producto = Producto::findOrfail($inventario->producto_id);
         $kardex = new Kardex();
 
-        $producto->update([
-            'precio' => $kardex->calcularPrecioVenta($producto->id)
-        ]);
+        $producto->precio = $kardex->calcularPrecioVenta($producto->id);
+        $producto->stock_actual = $inventario->cantidad;
+        $producto->save();
     }
 
     /**

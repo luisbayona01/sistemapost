@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Empresa extends Model
 {
+    use HasFactory;
+
     protected $guarded = ['id'];
 
     protected $table = 'empresa';
@@ -31,12 +34,17 @@ class Empresa extends Model
         return $this->belongsTo(SaaSPlan::class, 'plan_id');
     }
 
-    /**
-     * Relación: Empresa tiene una moneda
-     */
     public function moneda(): BelongsTo
     {
         return $this->belongsTo(Moneda::class);
+    }
+
+    /**
+     * Obtener el símbolo de moneda (defensivo)
+     */
+    public function getSimboloAttribute(): string
+    {
+        return $this->moneda->simbolo ?? '$';
     }
 
     /**
@@ -189,7 +197,7 @@ class Empresa extends Model
     public function hasStripeConnect(): bool
     {
         return $this->stripe_account_id !== null &&
-               $this->stripe_connect_status === 'ACTIVE';
+            $this->stripe_connect_status === 'ACTIVE';
     }
 
     /**
@@ -242,7 +250,7 @@ class Empresa extends Model
     public function isSubscriptionExpired(): bool
     {
         return $this->estado_suscripcion === 'past_due' ||
-               $this->estado_suscripcion === 'cancelled';
+            $this->estado_suscripcion === 'cancelled';
     }
 
     /**
@@ -266,7 +274,7 @@ class Empresa extends Model
      */
     public function getTarifaFormateada(): string
     {
-        return number_format($this->tarifa_servicio_porcentaje, 2, ',', '.');
+        return number_format((float) $this->tarifa_servicio_porcentaje, 2, ',', '.');
     }
 
     /**
@@ -275,7 +283,7 @@ class Empresa extends Model
     public function scopeWithActiveSubscription($query)
     {
         return $query->where('estado_suscripcion', 'active')
-                     ->where('estado', 'activa');
+            ->where('estado', 'activa');
     }
 
     /**

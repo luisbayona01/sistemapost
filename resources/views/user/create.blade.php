@@ -11,7 +11,7 @@
     <h1 class="text-3xl font-bold text-center text-gray-900 mb-6">Crear Usuario</h1>
 
     <x-breadcrumb.template>
-        <x-breadcrumb.item :href="route('panel')" content="Inicio" />
+        <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Inicio" />
         <x-breadcrumb.item :href="route('users.index')" content="Usuarios" />
         <x-breadcrumb.item active='true' content="Crear Usuario" />
     </x-breadcrumb.template>
@@ -65,19 +65,19 @@
                     </div>
                 </div>
 
-                <!---Email---->
+                <!---Username---->
                 <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email:</label>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Usuario (Login):</label>
                     <div class="md:col-span-2">
-                        <input autocomplete="off" type="email" name="email"
-                            id="email" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="{{old('email')}}"
-                            aria-labelledby="emailHelpBlock">
-                        <p class="text-xs text-gray-600 mt-1" id="emailHelpBlock">
-                            Dirección de correo eléctronico
+                        <input autocomplete="off" type="text" name="username"
+                            id="username" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" value="{{old('username')}}"
+                            aria-labelledby="usernameHelpBlock">
+                        <p class="text-xs text-gray-600 mt-1" id="usernameHelpBlock">
+                            Nombre de usuario para iniciar sesión
                         </p>
                     </div>
                     <div>
-                        @error('email')
+                        @error('username')
                         <small class="text-red-600">{{'*'.$message}}</small>
                         @enderror
                     </div>
