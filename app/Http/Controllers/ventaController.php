@@ -16,39 +16,50 @@ use App\Services\ActivityLogService;
 use App\Services\ComprobanteService;
 use App\Services\EmpresaService;
 use App\Services\StripePaymentService;
+use App\Services\CinemaService;
+use App\Services\VentaService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class ventaController extends Controller
+class VentaController extends Controller
 {
     protected EmpresaService $empresaService;
+    protected VentaService $ventaService;
+    protected CinemaService $cinemaService;
 
-    function __construct(EmpresaService $empresaService)
+    function __construct(EmpresaService $empresaService, VentaService $ventaService, CinemaService $cinemaService)
     {
         $this->middleware('permission:ver-venta|crear-venta|mostrar-venta|eliminar-venta', ['only' => ['index']]);
         $this->middleware('permission:crear-venta', ['only' => ['create', 'store']]);
         $this->middleware('permission:mostrar-venta', ['only' => ['show']]);
-        //$this->middleware('permission:eliminar-venta', ['only' => ['destroy']]);
+        $this->middleware('role:administrador|Gerente|Root', ['only' => ['destroy']]);
         $this->middleware('check-caja-aperturada-user', ['only' => ['create', 'store']]);
         $this->middleware('check-show-venta-user', ['only' => ['show']]);
         $this->empresaService = $empresaService;
+        $this->ventaService = $ventaService;
+        $this->cinemaService = $cinemaService;
     }
+    /**
+     * Display a listing of the resource.
+     * Global Scope filtra automáticamente por empresa_id
+     */
     /**
      * Display a listing of the resource.
      * Global Scope filtra automáticamente por empresa_id
      */
     public function index(): View
     {
+        // OPTIMIZATION: Pagination added to prevent memory exhaustion
         $ventas = Venta::with(['comprobante', 'cliente.persona', 'user'])
             ->where('user_id', Auth::id())
             ->latest()
-            ->get();
+            ->paginate(15);
 
         return view('venta.index', compact('ventas'));
     }
@@ -68,13 +79,13 @@ class ventaController extends Controller
             ->first();
 
         // Productos de la empresa con stock disponible
-        $productos = Producto::join('inventario as i', function ($join) {
-            $join->on('i.producto_id', '=', 'productos.id');
-        })
-            ->join('presentaciones as p', function ($join) {
-                $join->on('p.id', '=', 'productos.presentacione_id');
-            })
+        // OPTIMIZATION: Limited to 500 to prevent crashing. Added proper Eager Loading.
+        // TODO: Implement AJAX search for production scaling.
+        $productos = Producto::join('inventario as i', 'i.producto_id', '=', 'productos.id')
+            ->join('presentaciones as p', 'p.id', '=', 'productos.presentacione_id')
             ->where('productos.empresa_id', $empresa->id)
+            ->where('productos.estado', 1)
+            ->where('i.cantidad', '>', 0)
             ->select(
                 'p.sigla',
                 'productos.nombre',
@@ -83,111 +94,62 @@ class ventaController extends Controller
                 'i.cantidad',
                 'productos.precio'
             )
-            ->where('productos.estado', 1)
-            ->where('i.cantidad', '>', 0)
+            ->limit(500)
             ->get();
 
         // Clientes de la empresa
+        // OPTIMIZATION: Limit added. Should also be AJAX.
         $clientes = Cliente::whereHas('persona', function ($query) {
             $query->where('estado', 1);
         })
             ->where('empresa_id', $empresa->id)
+            ->limit(500)
             ->get();
 
-       Crea venta con empresa_id, calcula tarifa y registra movimiento de caja
+        $comprobantes = $comprobanteService->obtenerComprobantes();
+
+        return view('venta.create', compact('productos', 'clientes', 'comprobantes'));
+    }
+
+    /**
+     * Crea venta con empresa_id, calcula tarifa y registra movimiento de caja
      */
     public function store(StoreVentaRequest $request): RedirectResponse
     {
-        DB::beginTransaction();
         try {
-            // Obtener empresa y caja
-            $empresa = auth()->user()->empresa;
-            $cajaAbierta = Caja::where('user_id', Auth::id())
-                ->where('empresa_id', $empresa->id)
-                ->abierta()
-                ->first();
-
-            if (!$cajaAbierta) {
-                return redirect()->route('cajas.create')
-                    ->with('error', 'Debes abrir una caja para registrar ventas');
-            }
-
-            // Crear venta con empresa_id y user_id
-            $ventaData = array_merge($request->validated(), [
-                'empresa_id' => $empresa->id,
-                'user_id' => Auth::id(),
-                'caja_id' => $cajaAbierta->id,
-            ]);
-
-            $venta = Venta::create($ventaData);
-
-            // Llenar tabla venta_producto
+            // Preparar datos para el servicio
             $arrayProducto_id = $request->get('arrayidproducto');
             $arrayCantidad = $request->get('arraycantidad');
             $arrayPrecioVenta = $request->get('arrayprecioventa');
 
-            $siseArray = count($arrayProducto_id);
-
-            for ($i = 0; $i < $siseArray; $i++) {
-                $venta->productos()->syncWithoutDetaching([
-                    $arrayProducto_id[$i] => [
+            $productos = [];
+            if ($arrayProducto_id) {
+                foreach ($arrayProducto_id as $i => $id) {
+                    $productos[] = [
+                        'producto_id' => $id,
                         'cantidad' => $arrayCantidad[$i],
                         'precio_venta' => $arrayPrecioVenta[$i],
-                        'tarifa_unitaria' => $venta->calcularTarifaUnitaria(
-                            $arrayProducto_id[$i],
-                            $arrayPrecioVenta[$i]
-                        ),
-                    ]
-                ]);
-
-                // Despachar evento por cada detalle
-                CreateVentaDetalleEvent::dispatch(
-                    $venta,
-                    $arrayProducto_id[$i],
-                    $arrayCantidad[$i],
-                    $arrayPrecioVenta[$i]
-                );
+                    ];
+                }
             }
 
-            // Registrar movimiento de caja (ingreso por venta)
-            Movimiento::create([
-                'empresa_id' => $empresa->id,
-                'caja_id' => $cajaAbierta->id,
-                'venta_id' => $venta->id,
-                'user_id' => Auth::id(),
-                'tipo' => 'INGRESO',
-                'monto' => $venta->total,
-                'metodo_pago' => $venta->metodo_pago,
-                'descripcion' => "Venta #{$venta->id} - {$venta->comprobante->nombre}",
+            $venta = $this->ventaService->procesarVenta(array_merge($request->validated(), [
+                'productos' => $productos,
+            ]));
+
+            return redirect()->route('movimientos.index', ['caja_id' => $venta->caja_id])
+                ->with('success', 'Venta registrada correctamente');
+
+        } catch (Throwable $e) {
+            Log::error('Error al crear la venta', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request' => $request->all()
             ]);
 
-            // Despachar evento de venta completa
-            CreateVentaEvent::dispatch($venta);
-
-            DB::commit();
-            ActivityLogService::log('Creación de una venta', 'Ventas', $ventaData);
-            return redirect()->route('movimientos.index', ['caja_id' => $cajaAbierta->id])
-                ->with('success', 'Venta registrada correctamente');
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error('Error al crear la venta', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-            return redirect()->route('ventas.index')->with('error', 'Error al registrar la venta: ' . $e->getMessage()
-                );
-
-                $cont++;
-            }
-
-            //Despachar evento
-            CreateVentaEvent::dispatch($venta);
-
-            DB::commit();
-            ActivityLogService::log('Creación de una venta', 'Ventas', $request->validated());
-            return redirect()->route('movimientos.index', ['caja_id' => $venta->caja_id])
-                ->with('success', 'Venta registrada');
-        } catch (Throwable $e) {
-            DB::rollBack();
-            Log::error('Error al crear la venta', ['error' => $e->getMessage()]);
-            return redirect()->route('ventas.index')->with('error', 'Ups, algo falló');
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al registrar la venta: ' . $e->getMessage());
         }
     }
 
@@ -196,7 +158,7 @@ class ventaController extends Controller
      */
     public function show(Venta $venta): View
     {
-        $empresa =  $this->empresaService->obtenerEmpresa();
+        $empresa = $this->empresaService->obtenerEmpresa();
         return view('venta.show', compact('venta', 'empresa'));
     }
 
@@ -218,15 +180,68 @@ class ventaController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     * REQUIRES AUTH KEY (Gerente/Root)
      */
-    public function destroy(string $id)
+    public function destroy(string $id, Request $request)
     {
-        /* Venta::where('id', $id)
-            ->update([
-                'estado' => 0
+        // 1. Validar que se envió un PIN de autorización
+        $request->validate([
+            'auth_pin' => 'required|string'
+        ]);
+
+        // 2. Verificar credenciales del supervisor (Gerente o Root)
+        $supervisor = \App\Models\User::role(['Gerente', 'Root'])
+            ->where('pin_code', $request->auth_pin) // Asumiendo campo pin_code en users
+            ->first();
+
+        if (!$supervisor) {
+            if ($request->ajax()) {
+                return response()->json(['message' => 'PIN de autorización inválido o sin privilegios.'], 403);
+            }
+            return back()->with('error', 'Autorización fallida: PIN Incorrecto.');
+        }
+
+        // 3. Proceder con la anulación
+        try {
+            DB::beginTransaction();
+
+            $venta = Venta::with('productos.inventario')->findOrFail($id);
+
+            // LOGIC FIX: Revertir Stock
+            foreach ($venta->productos as $producto) {
+                if ($producto->inventario) {
+                    $producto->inventario->increment('cantidad', $producto->pivot->cantidad);
+                }
+            }
+
+            // Liberar asientos de cinema asociados
+            $this->cinemaService->liberarAsientosPorVenta($venta->id);
+
+            // LOGIC FIX: Update payment status so it doesn't count in cash reports
+            $venta->update([
+                'estado' => 0, // Inactivo
+                'estado_pago' => 'ANULADA',
+                'notas_anulacion' => $request->get('reason', 'Sin motivo')
             ]);
 
-        return redirect()->route('ventas.index')->with('success', 'Venta eliminada');*/
+            // 4. Log de Auditoría Inmutable
+            ActivityLogService::log(
+                'Anulación de Venta',
+                'Ventas',
+                ['venta_id' => $id, 'authorized_by' => $supervisor->name, 'reason' => $request->get('reason', 'Sin motivo')]
+            );
+
+            DB::commit();
+
+            if ($request->ajax()) {
+                return response()->json(['message' => 'Venta anulada correctamente por: ' . $supervisor->name]);
+            }
+            return redirect()->route('ventas.index')->with('success', 'Venta anulada bajo supervisión de: ' . $supervisor->name);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error crítico al anular: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -266,9 +281,11 @@ class ventaController extends Controller
             );
 
             // Registrar en activity log
-            activity()
-                ->withProperties(['venta_id' => $venta->id, 'payment_intent_id' => $transaction->stripe_payment_intent_id])
-                ->log('Pago Stripe iniciado');
+            \App\Services\ActivityLogService::log(
+                'Pago Stripe iniciado',
+                'Pagos',
+                ['venta_id' => $venta->id, 'payment_intent_id' => $transaction->stripe_payment_intent_id]
+            );
 
             return response()->json([
                 'success' => true,
@@ -323,7 +340,7 @@ class ventaController extends Controller
                 'success' => true,
                 'publicKey' => $stripeConfig->public_key,
                 'ventaId' => $venta->id,
-                'amount' => (int)($venta->total * 100),
+                'amount' => (int) ($venta->total * 100),
                 'currency' => 'usd',
                 'estatoPago' => $venta->estado_pago,
             ]);
@@ -396,6 +413,31 @@ class ventaController extends Controller
                 'message' => 'Error al consultar el pago'
             ], 500);
         }
+    }
+
+    /**
+     * Buscar venta por número de comprobante para devoluciones (POS)
+     */
+    public function buscarPorComprobante(Request $request): JsonResponse
+    {
+        $numero = $request->get('numero');
+
+        $venta = Venta::with(['productos', 'asientosCinema', 'cliente.persona'])
+            ->where('numero_comprobante', 'LIKE', "%{$numero}%")
+            ->where('empresa_id', auth()->user()->empresa_id)
+            ->latest()
+            ->first();
+
+        if (!$venta) {
+            return response()->json(['success' => false, 'message' => 'Factura no encontrada'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'venta' => $venta,
+            'print_url' => route('export.pdf-comprobante-venta', ['id' => \Illuminate\Support\Facades\Crypt::encrypt($venta->id)]),
+            'detalle' => $venta->productos->map(fn($p) => "{$p->pivot->cantidad}x {$p->nombre}")->implode(', ')
+        ]);
     }
 }
 

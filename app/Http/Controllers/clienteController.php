@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class clienteController extends Controller
+class ClienteController extends Controller
 {
     function __construct()
     {
@@ -51,7 +51,9 @@ class clienteController extends Controller
         try {
             DB::beginTransaction();
             $persona = Persona::create($request->validated());
-            $persona->cliente()->create([]);
+            $persona->cliente()->create([
+                'empresa_id' => auth()->user()->empresa_id
+            ]);
             DB::commit();
 
             ActivityLogService::log('Creacion de cliente', 'Clientes', $request->validated());

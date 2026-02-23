@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class presentacioneController extends Controller
+class PresentacioneController extends Controller
 {
     function __construct()
     {

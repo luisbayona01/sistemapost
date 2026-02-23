@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class compraController extends Controller
+class CompraController extends Controller
 {
     protected EmpresaService $empresaService;
 

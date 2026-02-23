@@ -6,7 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
-class logoutController extends Controller
+class LogoutController extends Controller
 {
     public function logout(): RedirectResponse
     {

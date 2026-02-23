@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\HasEmpresaScope;
+
 class Cliente extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
     protected $fillable = ['persona_id', 'empresa_id'];
 
@@ -39,18 +41,6 @@ class Cliente extends Model
     }
 
     /**
-     * Global scope: Filtrar clientes por empresa del usuario autenticado
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check() && auth()->user()->empresa_id) {
-                $query->where('clientes.empresa_id', auth()->user()->empresa_id);
-            }
-        });
-    }
-
-    /**
      * Scope: Obtener clientes por empresa
      */
     public function scopeForEmpresa($query, int $empresaId)
@@ -73,7 +63,11 @@ class Cliente extends Model
      */
     public function getNombreDocumentoAttribute(): string
     {
-        return $this->persona->razon_social . ' - ' . $this->persona->documento->nombre . ': ' . $this->persona->numero_documento;
+        if (!$this->persona)
+            return 'CLIENTE SIN DATOS';
+
+        $docNombre = $this->persona->documento->nombre ?? 'DOC';
+        return $this->persona->razon_social . ' - ' . $docNombre . ': ' . $this->persona->numero_documento;
     }
 
     /**
@@ -81,7 +75,7 @@ class Cliente extends Model
      */
     public function getNombreCompletoAttribute(): string
     {
-        return $this->persona->razon_social;
+        return $this->persona->razon_social ?? 'CLIENTE SIN NOMBRE';
     }
 
     /**
@@ -89,6 +83,6 @@ class Cliente extends Model
      */
     public function getNumeroDocumentoAttribute(): string
     {
-        return $this->persona->numero_documento;
+        return $this->persona->numero_documento ?? '0';
     }
 }

@@ -27,7 +27,7 @@ class RegisterEmpresaRequest extends FormRequest
 
             // Empresa
             'empresa_nombre' => ['required', 'string', 'max:255'],
-            'nit' => ['required', 'string', 'max:50', 'unique:empresa,nit'],
+            'nit' => ['required', 'string', 'max:50', 'unique:empresa,ruc'],
             'empresa_email' => ['nullable', 'email', 'max:255'],
             'telefono' => ['nullable', 'string', 'max:20'],
             'moneda_id' => ['required', 'exists:monedas,id'],
@@ -40,7 +40,7 @@ class RegisterEmpresaRequest extends FormRequest
                 'string',
                 'min:8',
                 'confirmed',
-                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/',
+                //'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/',
             ],
         ];
     }

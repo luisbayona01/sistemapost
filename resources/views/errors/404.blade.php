@@ -18,9 +18,11 @@
             <main class="w-full">
                 <div class="container max-w-2xl mx-auto px-4">
                     <div class="text-center mt-4">
-                        <img class="mb-4 mx-auto max-w-xs" src="{{ asset('assets/img/error-404-monochrome.svg') }}" alt="Error 404" />
+                        <img class="mb-4 mx-auto max-w-xs" src="{{ asset('assets/img/error-404-monochrome.svg') }}"
+                            alt="Error 404" />
                         <p class="text-xl text-gray-700">La URL solicitada no esta disponible</p>
-                        <a href="{{ route('panel') }}" class="inline-flex items-center mt-4 text-blue-600 hover:text-blue-700">
+                        <a href="{{ route('admin.dashboard.index') }}"
+                            class="inline-flex items-center mt-4 text-blue-600 hover:text-blue-700">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Sacame de aquí
                         </a>
@@ -32,7 +34,8 @@
             @include('layouts.include.footer')
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
 </body>
 

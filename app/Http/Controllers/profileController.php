@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-class profileController extends Controller
+class ProfileController extends Controller
 {
 
     function __construct()
@@ -71,15 +71,13 @@ class profileController extends Controller
             'password' => 'nullable'
         ]);
 
-        /*Comprobar el password y aplicar el Hash*/
-        if (empty($request->password)) {
-            $request = Arr::except($request, array('password'));
-        } else {
-            $request->merge(['password' => Hash::make($request->password)]);
+        $data = $request->except('password');
+        if (!empty($request->password)) {
+            $data['password'] = Hash::make($request->password);
         }
 
         try {
-            $profile->update($request->all());
+            $profile->update($data);
             return redirect()->route('profile.index')->with('success', 'Cambios guardados');
         } catch (Throwable $e) {
             Log::error('Error al actualizar perfil', ['error' => $e->getMessage()]);

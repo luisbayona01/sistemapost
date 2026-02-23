@@ -75,5 +75,17 @@ class Kernel extends HttpKernel
         'check-show-compra-user' => \App\Http\Middleware\CheckShowCompraUser::class,
         'check-user-estado' => \App\Http\Middleware\CheckUserEstado::class,
         'check-subscription-active' => \App\Http\Middleware\CheckSubscriptionActive::class,
+        'module' => \App\Http\Middleware\CheckModuleEnabled::class,
+
+
+
+        // FASE 4.1: Seguridad multiempresa
+        'ensure.empresa' => \App\Http\Middleware\EnsureUserBelongsToEmpresa::class,
+
+        // FASE 4.1: Auditoría automática
+        'log.critical' => \App\Http\Middleware\LogCriticalActions::class,
+
+        // FASE 4.2: Sistema de cajas obligatorio
+        'caja.abierta' => \App\Http\Middleware\EnsureCajaAbierta::class,
     ];
 }

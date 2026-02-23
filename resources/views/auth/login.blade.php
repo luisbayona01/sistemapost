@@ -18,9 +18,17 @@
         }
 
         @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
         }
 
         @keyframes slideInUp {
@@ -28,6 +36,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -35,8 +44,15 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-8px);
+            }
         }
 
         .glass-effect {
@@ -81,7 +97,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
             transition: left 0.5s;
         }
 
@@ -99,13 +115,30 @@
         }
 
         .error-badge {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97);
+            animation: shake 0.5s cubic-bezier(.36, .07, .19, .97);
         }
 
         @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-            20%, 40%, 60%, 80% { transform: translateX(5px); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateX(-5px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateX(5px);
+            }
         }
 
         .floating-icon {
@@ -119,212 +152,154 @@
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col overflow-hidden">
+<body class="min-h-screen flex flex-col overflow-y-auto">
     <!-- Animated Background Elements -->
-    <div class="absolute top-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-    <div class="absolute bottom-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    <div
+        class="fixed top-0 left-0 w-96 h-96 bg-white opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-pulse pointer-events-none">
+    </div>
+    <div class="fixed bottom-0 right-0 w-96 h-96 bg-white opacity-5 rounded-full mix-blend-multiply filter blur-3xl animate-pulse pointer-events-none"
+        style="animation-delay: 2s;"></div>
 
     <!-- Main Content -->
-    <div class="flex-1 flex items-center justify-center px-4 py-8 relative z-10">
+    <div class="flex-1 flex items-center justify-center px-4 py-4 relative z-10">
         <main class="w-full">
-            <div class="max-w-md mx-auto">
-                <!-- Premium Header Section -->
-                <div class="mb-12 text-center animate-in">
-                    <!-- Floating Logo -->
-                    <div class="inline-block bg-gradient-to-br from-white to-blue-50 rounded-2xl p-4 mb-6 shadow-2xl floating-icon border border-white/20">
-                        <div class="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-blue-500 rounded-xl">
-                            <i class="fas fa-shopping-cart text-white text-3xl"></i>
-                        </div>
-                    </div>
+            <div class="max-w-sm mx-auto">
 
-                    <!-- Brand Text -->
-                    <h1 class="text-4xl font-black text-white mb-3 tracking-tight">
-                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">
-                            SaleHub
-                        </span>
-                    </h1>
-                    <p class="text-white/80 text-base font-medium mb-1">Control Total de tu Negocio</p>
-                    <p class="text-white/60 text-sm">Acelera tus ventas y automatiza procesos</p>
+                <!-- Compact Header -->
+                <div class="mb-5 text-center animate-in">
+                    <div class="inline-flex items-center gap-3 mb-3">
+                        <div
+                            class="w-11 h-11 flex items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-blue-500 rounded-xl shadow-lg floating-icon">
+                            <i class="fas fa-cash-register text-white text-lg"></i>
+                        </div>
+                        <h1 class="text-2xl font-black text-white tracking-tight">
+                            <span
+                                class="bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-white">SaleHub</span>
+                        </h1>
+                    </div>
+                    <p class="text-white/70 text-xs font-medium">Control Total de tu Negocio</p>
                 </div>
 
-                <!-- Premium Login Card -->
-                <div class="glass-effect rounded-3xl shadow-2xl overflow-hidden border-b border-white/30 animate-in" style="animation-delay: 0.1s;">
-                    <!-- Card Header with Gradient -->
-                    <div class="relative px-8 pt-10 pb-8 card-accent border-b border-white/10">
-                        <div class="absolute inset-0 opacity-50"></div>
-                        <div class="relative">
-                            <h2 class="text-3xl font-bold text-gray-900 text-center mb-2">Bienvenido de vuelta</h2>
-                            <p class="text-center text-gray-600 text-sm">Accede a tu cuenta para continuar</p>
-                        </div>
+                <!-- Login Card -->
+                <div class="glass-effect rounded-2xl shadow-2xl overflow-hidden border border-white/30 animate-in"
+                    style="animation-delay: 0.1s;">
+
+                    <!-- Card Header -->
+                    <div class="px-6 pt-6 pb-4 card-accent border-b border-gray-100">
+                        <h2 class="text-xl font-bold text-gray-900 text-center mb-0.5">Bienvenido de vuelta</h2>
+                        <p class="text-center text-gray-500 text-xs">Accede a tu cuenta para continuar</p>
                     </div>
 
                     <!-- Card Body -->
-                    <div class="px-8 py-10">
-                        <!-- Error Messages with Premium Styling -->
+                    <div class="px-6 py-5">
+
                         @if ($errors->any())
-                            <div id="errors-container" class="mb-8 space-y-3">
+                            <div id="errors-container" class="mb-4 space-y-2">
                                 @foreach ($errors->all() as $error)
-                                    <div class="error-badge bg-gradient-to-r from-red-500/10 to-pink-500/10 border border-red-200/50 backdrop-blur-sm text-red-700 px-5 py-4 rounded-xl flex items-start gap-3" role="alert">
-                                        <i class="fas fa-exclamation-triangle text-red-500 mt-0.5 flex-shrink-0 text-lg"></i>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium">{{ $error }}</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            class="text-red-400 hover:text-red-600 flex-shrink-0 transition-colors"
-                                            onclick="this.closest('[role=alert]').remove();"
-                                            aria-label="Cerrar mensaje"
-                                        >
-                                            <i class="fas fa-times"></i>
+                                    <div class="error-badge bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl flex items-center gap-2"
+                                        role="alert">
+                                        <i class="fas fa-exclamation-triangle text-red-500 flex-shrink-0 text-sm"></i>
+                                        <p class="text-xs font-medium flex-1">{{ $error }}</p>
+                                        <button type="button" class="text-red-400 hover:text-red-600 flex-shrink-0"
+                                            onclick="this.closest('[role=alert]').remove();">
+                                            <i class="fas fa-times text-xs"></i>
                                         </button>
                                     </div>
                                 @endforeach
                             </div>
                         @endif
 
-                        <!-- Premium Login Form -->
-                        <form action="{{ route('login.login') }}" method="POST" class="space-y-6" id="loginForm" novalidate>
+                        <form action="{{ route('login.login') }}" method="POST" class="space-y-4" id="loginForm"
+                            novalidate>
                             @csrf
 
-                            <!-- Email Field -->
-                            <div class="group">
-                                <label for="inputEmail" class="block text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                    <i class="fas fa-at text-purple-600"></i>
-                                    Correo Electrónico
-                                    <span class="text-red-500">*</span>
+                            <!-- Usuario -->
+                            <div>
+                                <label for="inputUsername"
+                                    class="block text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                                    <i class="fas fa-user-circle text-purple-500 text-xs"></i>
+                                    Usuario <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
-                                    <input
-                                        autofocus
-                                        autocomplete="email"
-                                        value="{{ old('email', 'invitado@gmail.com') }}"
-                                        class="input-premium w-full px-5 py-4 rounded-xl outline-none text-gray-900 placeholder-gray-400 text-base"
-                                        name="email"
-                                        id="inputEmail"
-                                        type="email"
-                                        placeholder="tu@ejemplo.com"
-                                        required
-                                        aria-label="Correo electrónico"
-                                        aria-required="true"
-                                        @error('email') aria-invalid="true" @enderror
-                                    />
-                                    @error('email')
-                                        <span class="absolute right-4 top-4 text-red-500 text-lg">
-                                            <i class="fas fa-times-circle"></i>
-                                        </span>
+                                    <input autofocus autocomplete="username" value="{{ old('username', 'admin') }}"
+                                        class="input-premium w-full px-4 py-3 rounded-xl outline-none text-gray-900 placeholder-gray-400 text-sm"
+                                        name="username" id="inputUsername" type="text" placeholder="Nombre de usuario"
+                                        required aria-label="Nombre de usuario" />
+                                    @error('username')
+                                        <span class="absolute right-3 top-3 text-red-500"><i
+                                                class="fas fa-times-circle"></i></span>
                                     @enderror
                                 </div>
-                                @error('email')
-                                    <p class="text-red-600 text-xs mt-2 flex items-center gap-1 font-medium">
-                                        <i class="fas fa-info-circle"></i>
-                                        {{ $message }}
-                                    </p>
+                                @error('username')
+                                    <p class="text-red-600 text-xs mt-1 flex items-center gap-1"><i
+                                            class="fas fa-info-circle"></i> {{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <!-- Password Field -->
-                            <div class="group">
-                                <label for="inputPassword" class="block text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                                    <i class="fas fa-lock text-purple-600"></i>
-                                    Contraseña
-                                    <span class="text-red-500">*</span>
+                            <!-- Contraseña -->
+                            <div>
+                                <label for="inputPassword"
+                                    class="block text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1.5">
+                                    <i class="fas fa-lock text-purple-500 text-xs"></i>
+                                    Contraseña <span class="text-red-500">*</span>
                                 </label>
                                 <div class="relative">
                                     <input
-                                        class="input-premium w-full px-5 py-4 pr-12 rounded-xl outline-none text-gray-900 placeholder-gray-400 text-base"
-                                        name="password"
-                                        value="{{ old('password', '12345678') }}"
-                                        id="inputPassword"
-                                        type="password"
-                                        placeholder="••••••••"
-                                        required
-                                        aria-label="Contraseña"
-                                        aria-required="true"
-                                        @error('password') aria-invalid="true" @enderror
-                                    />
-                                    <button
-                                        type="button"
-                                        onclick="togglePasswordVisibility()"
-                                        class="absolute right-4 top-4 text-gray-500 hover:text-purple-600 transition-all duration-200 text-lg"
-                                        aria-label="Mostrar/ocultar contraseña"
-                                        tabindex="0"
-                                    >
+                                        class="input-premium w-full px-4 py-3 pr-11 rounded-xl outline-none text-gray-900 placeholder-gray-400 text-sm"
+                                        name="password" id="inputPassword" type="password" placeholder="••••••••"
+                                        required aria-label="Contraseña" />
+                                    <button type="button" onclick="togglePasswordVisibility()"
+                                        class="absolute right-3 top-3 text-gray-400 hover:text-purple-600 transition-colors"
+                                        aria-label="Mostrar/ocultar contraseña">
                                         <i id="toggleIcon" class="fas fa-eye"></i>
                                     </button>
                                 </div>
                                 @error('password')
-                                    <p class="text-red-600 text-xs mt-2 flex items-center gap-1 font-medium">
-                                        <i class="fas fa-info-circle"></i>
-                                        {{ $message }}
-                                    </p>
+                                    <p class="text-red-600 text-xs mt-1 flex items-center gap-1"><i
+                                            class="fas fa-info-circle"></i> {{ $message }}</p>
                                 @enderror
                             </div>
 
-                            <!-- Premium Submit Button -->
-                            <button
-                                type="submit"
-                                class="btn-premium w-full mt-10 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg text-base disabled:opacity-50 disabled:cursor-not-allowed"
-                                id="submitBtn"
-                            >
+                            <!-- Submit -->
+                            <button type="submit"
+                                class="btn-premium w-full mt-2 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                id="submitBtn">
                                 <i id="submitIcon" class="fas fa-arrow-right"></i>
                                 <span id="submitText">Iniciar Sesión</span>
                             </button>
                         </form>
 
-                        <!-- Divider with Gradient -->
-                        <div class="mt-8 flex items-center gap-4">
-                            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                            <span class="text-gray-500 text-xs font-medium tracking-wide">O</span>
-                            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent"></div>
-                        </div>
-
-                        <!-- Premium Demo Info Card -->
-                        <div class="mt-8 card-accent border border-white/20 rounded-2xl p-6 backdrop-blur-sm">
-                            <div class="flex items-start gap-3">
-                                <i class="fas fa-sparkles text-purple-600 text-lg mt-0.5 flex-shrink-0"></i>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-800 mb-3">Acceso de Demostración</p>
-                                    <ul class="text-xs text-gray-700 space-y-2 font-medium">
-                                        <li class="flex items-center gap-2">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
-                                            <span><strong>Email:</strong> invitado@gmail.com</span>
-                                        </li>
-                                        <li class="flex items-center gap-2">
-                                            <span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>
-                                            <span><strong>Pass:</strong> 12345678</span>
-                                        </li>
-                                    </ul>
-                                </div>
+                        <!-- Demo credentials compact -->
+                        <div
+                            class="mt-4 bg-purple-50 border border-purple-100 rounded-xl px-4 py-3 flex items-center gap-3">
+                            <i class="fas fa-info-circle text-purple-500 flex-shrink-0"></i>
+                            <div class="text-xs text-gray-600">
+                                <span class="font-semibold text-gray-800">Demo:</span>
+                                usuario <code class="bg-purple-100 px-1 rounded font-mono">admin</code> /
+                                clave <code class="bg-purple-100 px-1 rounded font-mono">12345678</code>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Premium Footer -->
-                    <div class="px-8 py-5 border-t border-white/10 bg-white/30 backdrop-blur-sm text-center">
-                        <p class="text-sm text-gray-700">
+                    <!-- Footer del card -->
+                    <div class="px-6 py-3 border-t border-gray-100 bg-gray-50/50 text-center">
+                        <p class="text-xs text-gray-500">
                             ¿Problemas para acceder?
-                            <a href="#" class="text-purple-600 hover:text-purple-700 font-bold transition-colors underline">
-                                Contacta soporte
-                            </a>
+                            <a href="#"
+                                class="text-purple-600 hover:text-purple-700 font-semibold transition-colors">Contacta
+                                soporte</a>
                         </p>
                     </div>
                 </div>
 
-                <!-- Security & Trust Indicators -->
-                <div class="mt-8 flex items-center justify-center gap-6 text-white/70 text-xs font-medium">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-shield-alt text-green-400"></i>
-                        SSL Seguro
+                <!-- Trust indicators compact -->
+                <div class="mt-4 flex items-center justify-center gap-4 text-white/60 text-[10px] font-medium">
+                    <div class="flex items-center gap-1"><i class="fas fa-shield-alt text-green-400"></i> SSL Seguro
                     </div>
                     <span class="text-white/30">•</span>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-lock text-green-400"></i>
-                        Datos Encriptados
-                    </div>
+                    <div class="flex items-center gap-1"><i class="fas fa-lock text-green-400"></i> Encriptado</div>
                     <span class="text-white/30">•</span>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-check-circle text-green-400"></i>
-                        Verificado
+                    <div class="flex items-center gap-1"><i class="fas fa-check-circle text-green-400"></i> Verificado
                     </div>
                 </div>
             </div>
@@ -365,7 +340,7 @@
         }
 
         // Premium Form submission feedback
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        document.getElementById('loginForm').addEventListener('submit', function (e) {
             const submitBtn = document.getElementById('submitBtn');
             const submitIcon = document.getElementById('submitIcon');
             const submitText = document.getElementById('submitText');
@@ -388,7 +363,7 @@
         }, 100);
 
         // Enhanced keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !document.getElementById('submitBtn').disabled) {
                 document.getElementById('loginForm').submit();
             }

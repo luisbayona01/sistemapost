@@ -15,7 +15,8 @@ class RegisterController extends Controller
 {
     public function __construct(
         private SubscriptionService $subscriptionService
-    ) {}
+    ) {
+    }
 
     /**
      * Mostrar formulario de registro de empresa
@@ -24,7 +25,7 @@ class RegisterController extends Controller
     {
         // Si ya está autenticado, redirigir al panel
         if (Auth::check()) {
-            return redirect()->route('panel');
+            return redirect()->route('admin.dashboard.index');
         }
 
         $planes = SaaSPlan::activos()->get();
@@ -45,13 +46,14 @@ class RegisterController extends Controller
 
             // Datos de la empresa
             $empresaData = [
-                'razon_social' => $request->empresa_nombre,
-                'nombre_comercial' => $request->empresa_nombre,
-                'nit' => $request->nit,
-                'email' => $request->empresa_email ?? $request->email,
+                'nombre' => $request->empresa_nombre,
+                'propietario' => $request->nombre_contacto,
+                'ruc' => $request->nit,
+                'correo' => $request->empresa_email ?? $request->email,
+                'direccion' => 'Sin dirección registrada', // Default value required as it is not nullable
                 'telefono' => $request->telefono,
                 'moneda_id' => $request->moneda_id,
-                'porcentaje_impuesto' => 19.00, // Default para Colombia
+                'porcentaje_impuesto' => 19,
                 'abreviatura_impuesto' => 'IVA',
             ];
 
@@ -78,7 +80,7 @@ class RegisterController extends Controller
             // Autenticar al usuario automáticamente
             Auth::login($resultado['usuario']);
 
-            return redirect()->route('panel')
+            return redirect()->route('admin.dashboard.index')
                 ->with('success', '¡Bienvenido! Tu empresa ha sido registrada exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()

@@ -6,11 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Traits\HasEmpresaScope;
+
 class Caracteristica extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
-    protected $fillable = ['nombre', 'descripcion', 'estado'];
+    protected $fillable = ['nombre', 'descripcion', 'estado', 'empresa_id'];
 
     public function categoria(): HasOne
     {

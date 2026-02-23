@@ -165,6 +165,9 @@ class StripePaymentService
             // Marcar venta como pagada
             $venta->update(['estado_pago' => 'PAGADA']);
 
+            // Disparar evento para descuento de inventario y envío de email
+            event(new \App\Events\CreateVentaEvent($venta));
+
             // Crear movimiento de caja si no existe
             $movimiento = $venta->movimientos()
                 ->where('tipo', 'INGRESO')
@@ -175,7 +178,7 @@ class StripePaymentService
                 $movimiento->update(['pago_completado_en' => now()]);
             }
 
-            Log::info('Pago procesado exitosamente', [
+            Log::info('Pago procesado exitosamente y evento de inventario disparado', [
                 'venta_id' => $venta->id,
                 'payment_intent_id' => $paymentIntent->id,
                 'amount' => $paymentIntent->amount / 100,

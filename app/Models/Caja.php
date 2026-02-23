@@ -6,6 +6,7 @@ use App\Observers\CajaObserver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,13 +14,36 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ObservedBy(CajaObserver::class)]
 class Caja extends Model
 {
-    protected $guarded = ['id'];
+    use HasFactory;
+
+    protected $fillable = [
+        'empresa_id',
+        'user_id',
+        'fecha_apertura',
+        'fecha_cierre',
+        'monto_inicial',
+        'monto_final_declarado',
+        'monto_final_esperado',
+        'diferencia',
+        'estado',
+        'cerrado_por',
+        'notas_cierre',
+        'efectivo_declarado',
+        'tarjeta_declarado',
+        'otros_declarado',
+        'nombre', // Added back as it was in previous version
+    ];
 
     protected $casts = [
-        'fecha_hora_apertura' => 'datetime',
-        'fecha_hora_cierre' => 'datetime',
-        'saldo_inicial' => 'decimal:2',
-        'saldo_final' => 'decimal:2',
+        'fecha_apertura' => 'datetime',
+        'fecha_cierre' => 'datetime',
+        'monto_inicial' => 'decimal:2',
+        'monto_final_declarado' => 'decimal:2',
+        'monto_final_esperado' => 'decimal:2',
+        'diferencia' => 'decimal:2',
+        'efectivo_declarado' => 'decimal:2',
+        'tarjeta_declarado' => 'decimal:2',
+        'otros_declarado' => 'decimal:2',
     ];
 
     /**
@@ -35,7 +59,15 @@ class Caja extends Model
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * Relación: Caja fue cerrada por un usuario
+     */
+    public function cerradoPor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cerrado_por');
     }
 
     /**
@@ -60,8 +92,10 @@ class Caja extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check() && auth()->user()->empresa_id) {
-                $query->where('cajas.empresa_id', auth()->user()->empresa_id);
+            if (auth()->check()) {
+                $query->where($query->getModel()->qualifyColumn('empresa_id'), auth()->user()->empresa_id);
+            } elseif (!app()->runningInConsole()) {
+                // abort(403, 'Acceso no autorizado a datos de empresa.');
             }
         });
     }
@@ -71,7 +105,7 @@ class Caja extends Model
      */
     public function scopeAbierta($query)
     {
-        return $query->where('estado', 'abierta');
+        return $query->where('estado', 'ABIERTA');
     }
 
     /**
@@ -79,104 +113,24 @@ class Caja extends Model
      */
     public function scopeCerrada($query)
     {
-        return $query->where('estado', 'cerrada');
+        return $query->where('estado', 'CERRADA');
     }
 
-    /**
-     * Scope: Obtener cajas por empresa
-     */
-    public function scopeForEmpresa($query, int $empresaId)
-    {
-        return $query->withoutGlobalScope('empresa')->where('empresa_id', $empresaId);
-    }
-
-    /**
-     * Scope: Obtener cajas por usuario
-     */
-    public function scopeByUser($query, int $userId)
-    {
-        return $query->where('user_id', $userId);
-    }
-
-    /**
-     * Obtener solo fecha de la apertura
-     */
-    public function getFechaAperturaAttribute(): string
-    {
-        return Carbon::parse($this->fecha_hora_apertura)->format('d-m-Y');
-    }
-
-    /**
-     * Obtener solo hora de la apertura
-     */
-    public function getHoraAperturaAttribute(): string
-    {
-        return Carbon::parse($this->fecha_hora_apertura)->format('H:i');
-    }
-
-    /**
-     * Obtener solo fecha del cierre
-     */
-    public function getFechaCierreAttribute(): string
-    {
-        return $this->fecha_hora_cierre
-            ? Carbon::parse($this->fecha_hora_cierre)->format('d-m-Y')
-            : '';
-    }
-
-    /**
-     * Obtener solo hora del cierre
-     */
-    public function getHoraCierreAttribute(): string
-    {
-        return $this->fecha_hora_cierre
-            ? Carbon::parse($this->fecha_hora_cierre)->format('H:i')
-            : '';
-    }
-
-    /**
-     * Calcular el saldo total de la caja
-     * (saldo_inicial + movimientos)
-     */
-    public function calcularSaldo(): float
-    {
-        $ingresos = $this->movimientos()
-            ->where('tipo', 'ingreso')
-            ->sum('monto');
-
-        $egresos = $this->movimientos()
-            ->where('tipo', 'egreso')
-            ->sum('monto');
-
-        return ($this->saldo_inicial ?? 0) + $ingresos - $egresos;
-    }
-
-    /**
-     * Cerrar la caja registrando el saldo final
-     */
-    public function cerrar(float $montoRecibido): self
-    {
-        $this->saldo_final = $montoRecibido;
-        $this->estado = 'cerrada';
-        $this->fecha_hora_cierre = Carbon::now();
-        $this->save();
-
-        return $this;
-    }
-
-    /**
-     * Verificar si la caja está abierta
-     */
     public function estaAbierta(): bool
     {
-        return $this->estado === 'abierta';
+        return $this->estado === 'ABIERTA';
+    }
+
+    public function estaCerrada(): bool
+    {
+        return $this->estado === 'CERRADA';
     }
 
     /**
-     * Verificar si la caja está cerrada
+     * Calcula la diferencia entre lo declarado y lo esperado.
      */
-    public function estaCerrada(): bool
+    public function calcularDiferencia(float $declarado, float $esperado): float
     {
-        return $this->estado === 'cerrada';
+        return round($declarado - $esperado, 2);
     }
 }

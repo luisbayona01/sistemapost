@@ -8,15 +8,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Traits\HasEmpresaScope;
+
 #[ObservedBy([InventarioObserver::class])]
 class Inventario extends Model
 {
+    use HasEmpresaScope;
+
     protected $guarded = ['id'];
 
     protected $table = 'inventario';
 
     protected $casts = [
-        'fecha_vencimiento' => 'date',
+        'fecha_vencimiento' => 'datetime',
         'cantidad' => 'integer',
         'stock_minimo' => 'integer',
     ];
@@ -43,18 +47,6 @@ class Inventario extends Model
     public function producto(): BelongsTo
     {
         return $this->belongsTo(Producto::class);
-    }
-
-    /**
-     * Global scope: Filtrar inventario por empresa del usuario autenticado
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check() && auth()->user()->empresa_id) {
-                $query->where('inventario.empresa_id', auth()->user()->empresa_id);
-            }
-        });
     }
 
     /**

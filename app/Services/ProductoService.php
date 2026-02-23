@@ -16,6 +16,7 @@ class ProductoService
         $producto = Producto::create([
             'codigo' => $data['codigo'],
             'nombre' => $data['nombre'],
+            'slug' => \Illuminate\Support\Str::slug($data['nombre']),
             'descripcion' => $data['descripcion'],
             'img_path' => isset($data['img_path']) && $data['img_path']
                 ? $this->handleUploadImage($data['img_path'])
@@ -23,6 +24,8 @@ class ProductoService
             'marca_id' => $data['marca_id'],
             'categoria_id' => $data['categoria_id'],
             'presentacione_id' => $data['presentacione_id'],
+            'es_venta_retail' => true,
+            'estado' => $data['estado'] ?? 0,
         ]);
 
         return $producto;
@@ -33,10 +36,10 @@ class ProductoService
      */
     public function editarProducto(array $data, Producto $producto): Producto
     {
-
-        $producto->update([
+        $fields = [
             'codigo' => $data['codigo'],
             'nombre' => $data['nombre'],
+            'slug' => \Illuminate\Support\Str::slug($data['nombre']),
             'descripcion' => $data['descripcion'],
             'img_path' => isset($data['img_path']) && $data['img_path']
                 ? $this->handleUploadImage($data['img_path'], $producto->img_path)
@@ -44,7 +47,13 @@ class ProductoService
             'marca_id' => $data['marca_id'],
             'categoria_id' => $data['categoria_id'],
             'presentacione_id' => $data['presentacione_id'],
-        ]);
+        ];
+
+        if (isset($data['estado'])) {
+            $fields['estado'] = $data['estado'];
+        }
+
+        $producto->update($fields);
 
         return $producto;
     }

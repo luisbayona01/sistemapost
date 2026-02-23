@@ -22,8 +22,8 @@ class CheckSubscriptionActive
             return $next($request);
         }
 
-        // Si es super-admin, no tiene restricciones de suscripción
-        if ($user->hasRole('super-admin')) {
+        // Si es super-admin o Root, no tiene restricciones de suscripción
+        if ($user->hasRole('super-admin') || $user->hasRole('Root')) {
             return $next($request);
         }
 

@@ -37,6 +37,11 @@ class EnviarComprobanteVentaJob implements ShouldQueue
             return;
         }
 
+        if (!$venta->cliente || !$venta->cliente->persona) {
+            Log::warning("Venta #{$venta->id} no tiene cliente o persona asociada para envío de email.");
+            return;
+        }
+
         $cliente_email = $venta->cliente->persona->email;
 
         if (filter_var($cliente_email, FILTER_VALIDATE_EMAIL)) {

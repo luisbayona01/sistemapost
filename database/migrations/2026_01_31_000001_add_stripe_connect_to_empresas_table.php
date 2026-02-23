@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      *
@@ -17,7 +16,7 @@ return new class extends Migration
     {
         Schema::table('empresa', function (Blueprint $table) {
             // Stripe Account ID para Stripe Connect (acct_xxxx...)
-            $table->string('stripe_account_id', 255)
+            $table->string('stripe_account_id', 191)
                 ->nullable()
                 ->unique()
                 ->after('ruc')

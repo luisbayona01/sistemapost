@@ -20,7 +20,8 @@
                     <div class="text-center mt-4">
                         <h1 class="text-6xl font-bold text-gray-900">500</h1>
                         <p class="text-xl text-gray-700 mt-2">Error de servidor interno</p>
-                        <a href="{{route('panel')}}" class="inline-flex items-center mt-4 text-blue-600 hover:text-blue-700">
+                        <a href="{{route('admin.dashboard.index')}}"
+                            class="inline-flex items-center mt-4 text-blue-600 hover:text-blue-700">
                             <i class="fas fa-arrow-left mr-2"></i>
                             Quiero salir de aquí
                         </a>
@@ -32,7 +33,8 @@
             @include('layouts.include.footer')
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        crossorigin="anonymous"></script>
     <script src="{{ asset('js/scripts.js') }}"></script>
 </body>
 

@@ -15,7 +15,7 @@ class CajaObserver
     public function creating(Caja $caja): void
     {
         $caja->nombre = 'Caja de ' . Auth::user()->name;
-        $caja->fecha_hora_apertura = Carbon::now()->toDateTimeString();
+        $caja->fecha_apertura = Carbon::now()->toDateTimeString();
         $caja->user_id = Auth::id();
     }
 
@@ -43,8 +43,8 @@ class CajaObserver
             SUM(CASE WHEN tipo = 'RETIRO' THEN monto ELSE 0 END) AS total_retiro
             ")->first();
 
-        $caja->fecha_hora_cierre = Carbon::now()->toDateTimeString();
-        $caja->saldo_final = $caja->saldo_inicial + ($movimientos->total_venta ?? 0) - ($movimientos->total_retiro ?? 0);
+        $caja->fecha_cierre = Carbon::now()->toDateTimeString();
+        $caja->saldo_final = $caja->monto_inicial + ($movimientos->total_venta ?? 0) - ($movimientos->total_retiro ?? 0);
     }
 
     /**

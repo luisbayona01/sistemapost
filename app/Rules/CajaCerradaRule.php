@@ -17,7 +17,7 @@ class CajaCerradaRule implements ValidationRule
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
         //Realizar comprobación de que el usuario no tenga ninguna caja aperturada
-        if (Caja::where('user_id', Auth::id())->where('estado', 1)->exists()) {
+        if (Caja::where('user_id', Auth::id())->where('estado', 'ABIERTA')->exists()) {
             $fail('Ya tiene una caja aperturada');
         }
     }
