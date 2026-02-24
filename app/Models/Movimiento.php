@@ -8,9 +8,11 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\HasEmpresaScope;
 
 class Movimiento extends Model
 {
+    use HasEmpresaScope;
     // Tipos de Movimiento
     public const TIPO_VENTA = 'VENTA';
     public const TIPO_RETIRO = 'RETIRO';
@@ -59,20 +61,6 @@ class Movimiento extends Model
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class);
-    }
-
-    /**
-     * Global scope: Filtrar movimientos por empresa del usuario autenticado
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check()) {
-                $query->where($query->getModel()->qualifyColumn('empresa_id'), auth()->user()->empresa_id);
-            } elseif (!app()->runningInConsole()) {
-                abort(403, 'Acceso no autorizado a datos de empresa.');
-            }
-        });
     }
 
     /**

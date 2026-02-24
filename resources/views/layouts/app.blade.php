@@ -25,6 +25,23 @@
         <!-- Header -->
         @include('layouts.include.navigation-header')
 
+        @if(session()->has('original_user'))
+            <div
+                class="bg-red-600 text-white text-center py-2 px-4 sticky top-[64px] z-50 flex items-center justify-center gap-4 shadow-lg animate-pulse">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-user-secret"></i>
+                    <span class="text-xs font-black uppercase tracking-widest">Modo Intervención Activo</span>
+                </div>
+                <p class="text-sm font-bold">Estás operando como <span
+                        class="underline decoration-white/50 decoration-2 underline-offset-4">{{ Auth::user()->name }}</span>
+                </p>
+                <a href="{{ route('root.stop-impersonate') }}"
+                    class="bg-white text-red-600 px-4 py-1 rounded-full text-[10px] font-black uppercase hover:bg-red-50 transition-all shadow-sm">
+                    Salir y Volver al Panel Maestro
+                </a>
+            </div>
+        @endif
+
         <div class="flex flex-1 relative overflow-hidden">
             <!-- Sidebar -->
             @include('layouts.include.navigation-menu')

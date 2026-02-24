@@ -36,12 +36,15 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\TenantResolver::class,
+            \App\Http\Middleware\SetTenantTeamId::class,
         ],
 
         'api' => [
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\TenantResolver::class,
         ],
     ];
 
@@ -87,5 +90,9 @@ class Kernel extends HttpKernel
 
         // FASE 4.2: Sistema de cajas obligatorio
         'caja.abierta' => \App\Http\Middleware\EnsureCajaAbierta::class,
+
+        // FASE 7.4: 2FA para Super Admin
+        '2fa' => \App\Http\Middleware\RequireTwoFactor::class,
+        'identify.tenant' => \App\Http\Middleware\TenantResolver::class,
     ];
 }

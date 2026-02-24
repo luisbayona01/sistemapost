@@ -84,13 +84,28 @@ class VentaService
                 $subtotalConfiteria = (float) ($data['subtotal'] ?? 0);
             }
 
-            // Cálculo de INC (Extracción: El precio ya incluye el impuesto)
-            $porcentajeINC = config('impuestos.inc_confiteria', 8);
-            $aplicarINC = config('impuestos.aplicar_inc', true);
+            // Cálculo de Impuestos según Sector
+            $sector = $empresa->sector ?? 'cine';
+            $incTotal = 0;
+            $ivaTotal = 0;
 
-            // Fórmula de extracción: Subtotal / 1.08 para obtener el neto
-            $netoConfiteria = $aplicarINC ? ($subtotalConfiteria / (1 + ($porcentajeINC / 100))) : $subtotalConfiteria;
-            $incTotal = $subtotalConfiteria - $netoConfiteria;
+            if ($sector === 'cine') {
+                // Cálculo de INC (Extracción: El precio ya incluye el impuesto)
+                $porcentajeINC = config('impuestos.inc_confiteria', 8);
+                $aplicarINC = config('impuestos.aplicar_inc', true);
+
+                // Fórmula de extracción: Subtotal / 1.08 para obtener el neto
+                $netoConfiteria = $aplicarINC ? ($subtotalConfiteria / (1 + ($porcentajeINC / 100))) : $subtotalConfiteria;
+                $incTotal = $subtotalConfiteria - $netoConfiteria;
+                $ivaTotal = 0;
+            } else {
+                // Otros sectores (Veterinaria, etc) usan IVA
+                $porcentajeIVA = (float) $empresa->porcentaje_impuesto;
+                // Asumimos que el precio en POS ya incluye IVA (igual que confitería)
+                $netoTotal = ($subtotalCine + $subtotalConfiteria) / (1 + ($porcentajeIVA / 100));
+                $ivaTotal = ($subtotalCine + $subtotalConfiteria) - $netoTotal;
+                $incTotal = 0;
+            }
 
             $totalFinal = $subtotalCine + $subtotalConfiteria;
 
@@ -105,9 +120,9 @@ class VentaService
                 'fecha_operativa' => $data['fecha_operativa'] ?? app(\App\Services\AccountingService::class)->getActiveDay($empresa->id),
                 'metodo_pago' => $data['metodo_pago'] ?? 'EFECTIVO',
                 'subtotal' => $totalFinal,
-                'subtotal_cine' => $subtotalCine,
-                'subtotal_confiteria' => $subtotalConfiteria,
-                'impuesto' => 0, // IVA 0% según normativa actual cinema/pos
+                'subtotal_cine' => ($sector === 'cine') ? $subtotalCine : 0,
+                'subtotal_confiteria' => ($sector === 'cine') ? $subtotalConfiteria : $totalFinal,
+                'impuesto' => $ivaTotal,
                 'inc_total' => $incTotal,
                 'total' => $totalFinal,
                 'total_final' => $totalFinal,

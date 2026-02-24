@@ -74,7 +74,6 @@ class VentaController extends Controller
 
         // Obtener caja abierta del usuario en esta empresa
         $cajaAbierta = Caja::where('user_id', Auth::id())
-            ->where('empresa_id', $empresa->id)
             ->abierta()
             ->first();
 
@@ -83,7 +82,6 @@ class VentaController extends Controller
         // TODO: Implement AJAX search for production scaling.
         $productos = Producto::join('inventario as i', 'i.producto_id', '=', 'productos.id')
             ->join('presentaciones as p', 'p.id', '=', 'productos.presentacione_id')
-            ->where('productos.empresa_id', $empresa->id)
             ->where('productos.estado', 1)
             ->where('i.cantidad', '>', 0)
             ->select(
@@ -102,7 +100,6 @@ class VentaController extends Controller
         $clientes = Cliente::whereHas('persona', function ($query) {
             $query->where('estado', 1);
         })
-            ->where('empresa_id', $empresa->id)
             ->limit(500)
             ->get();
 

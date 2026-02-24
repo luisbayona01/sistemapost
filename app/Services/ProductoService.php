@@ -73,8 +73,9 @@ class ProductoService
             }
         }
 
+        $tenantId = auth()->user()->empresa_id ?? 'default';
         $name = uniqid() . '.' . $image->getClientOriginalExtension();
-        $path = 'storage/' . $image->storeAs('productos', $name);
+        $path = 'storage/' . $image->storeAs("tenant_{$tenantId}/productos", $name, 'public');
         return $path;
     }
 }

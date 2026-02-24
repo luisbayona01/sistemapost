@@ -67,11 +67,11 @@
     @if(session('venta_exitosa'))
         <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]" x-data="{ show: true }"
             x-init="
-                        if (typeof imprimirRecibo === 'function') {
-                            imprimirRecibo('{{ session('venta_exitosa')['print_url'] }}');
-                        }
-                        localStorage.removeItem('pos_cart_backup');
-                    " x-show="show" x-transition:enter="transition ease-out duration-300"
+                            if (typeof imprimirRecibo === 'function') {
+                                imprimirRecibo('{{ session('venta_exitosa')['print_url'] }}');
+                            }
+                            localStorage.removeItem('pos_cart_backup');
+                        " x-show="show" x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100"
             @click.away="show = false">
             <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
@@ -144,6 +144,19 @@
                 </div>
 
                 <div class="flex items-center gap-4">
+                    <!-- Offline Indicator -->
+                    <div x-show="isOffline"
+                        class="flex items-center gap-2 bg-rose-600 px-3 py-1.5 rounded-full animate-pulse border border-rose-400">
+                        <i class="fas fa-wifi-slash text-[10px]"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest">MODO OFFLINE</span>
+                    </div>
+                    <div x-show="!isOffline && offlineSalesCount > 0"
+                        class="flex items-center gap-2 bg-amber-500 px-3 py-1.5 rounded-full border border-amber-300">
+                        <i class="fas fa-sync fa-spin text-[10px]"></i>
+                        <span class="text-[9px] font-black uppercase tracking-widest"
+                            x-text="'SINCRONIZANDO ' + offlineSalesCount"></span>
+                    </div>
+
                     <div class="text-right hidden md:block">
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter">
                             {{ now()->translatedFormat('l d \d\e F') }}
@@ -729,6 +742,8 @@
                     tipo_desc: ''
                 },
                 isProcessing: false,
+                isOffline: !navigator.onLine,
+                offlineSalesCount: 0,
                 nitValido: null,
 
                 // Validador NIT colombiano (Módulo 11)
@@ -763,10 +778,64 @@
                     this.updateTime();
                     setInterval(() => this.updateTime(), 1000);
 
+                    // Offline detection
+                    window.addEventListener('online', () => {
+                        this.isOffline = false;
+                        this.syncOfflineSales();
+                    });
+                    window.addEventListener('offline', () => {
+                        this.isOffline = true;
+                    });
+
+                    this.updateOfflineCount();
+
                     // Heartbeat para evitar 419 (CSRF/Session Timeout)
                     setInterval(() => {
-                        fetch('{{ url("pos/carrito-partial") }}');
+                        if (!this.isOffline) fetch('{{ url("pos/carrito-partial") }}');
                     }, 15 * 60 * 1000); // Cada 15 min
+
+                    // Sync initial
+                    if (!this.isOffline) this.syncOfflineSales();
+                },
+
+                updateOfflineCount() {
+                    const sales = JSON.parse(localStorage.getItem('offline_sales') || '[]');
+                    this.offlineSalesCount = sales.length;
+                },
+
+                async syncOfflineSales() {
+                    if (this.isOffline) return;
+
+                    const sales = JSON.parse(localStorage.getItem('offline_sales') || '[]');
+                    if (sales.length === 0) return;
+
+                    this.isProcessing = true;
+
+                    for (const sale of sales) {
+                        try {
+                            const response = await originalFetch('{{ route("pos.sync-offline") }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify(sale)
+                            });
+
+                            const data = await response.json();
+                            if (data.success) {
+                                // Eliminar de local storage
+                                const currentSales = JSON.parse(localStorage.getItem('offline_sales') || '[]');
+                                const filtered = currentSales.filter(s => s.uuid !== sale.uuid);
+                                localStorage.setItem('offline_sales', JSON.stringify(filtered));
+                                this.updateOfflineCount();
+                            }
+                        } catch (e) {
+                            console.error('Error syncing sale:', e);
+                        }
+                    }
+                    this.isProcessing = false;
                 },
 
                 updateTime() {
@@ -889,6 +958,10 @@
                         formData.append('cliente_email', this.cliente.email);
                         formData.append('cliente_telefono', this.cliente.telefono);
                         formData.append('preferencia_fiscal', this.cliente.preferencia);
+
+                        if (this.isOffline) {
+                            return this.saveOfflineVenta(formData);
+                        }
 
                         const response = await fetch('{{ route("pos.finalizar") }}', {
                             method: 'POST',
@@ -1165,40 +1238,85 @@
                     }
                 },
 
+            }
+        }
+                },
+
+        saveOfflineVenta(formData) {
+            const cartData = JSON.parse(document.getElementById('cart-data-json')?.textContent || '{}');
+            if (!cartData.boletos?.length && !cartData.productos?.length) {
+                Swal.fire('Error', 'No hay productos en el carrito', 'error');
+                return;
+            }
+
+            const offlineSale = {
+                uuid: crypto.randomUUID(),
+                data: Object.fromEntries(formData.entries()),
+                cart: cartData,
+                total: parseFloat(document.getElementById('total-sidebar')?.innerText.replace(/[^0-9.]/g, '') || 0),
+                timestamp: new Date().toISOString()
+            };
+
+            const sales = JSON.parse(localStorage.getItem('offline_sales') || '[]');
+            sales.push(offlineSale);
+            localStorage.setItem('offline_sales', JSON.stringify(sales));
+            this.updateOfflineCount();
+
+            Swal.fire({
+                title: 'Venta Guardada Offline',
+                text: 'La venta se sincronizará automáticamente cuando vuelva internet.',
+                icon: 'info',
+                timer: 3000,
+                showConfirmButton: false
+            });
+
+            // Limpiar UI localmente (ya que no podemos llamar a refrescarCarrito si no hay red)
+            // En una implementación real más compleja re-renderizaríamos el carrito Alpine localmente.
+            // Por ahora, recargamos para que el server (si vuelve) o la sesión local se limpie si se puede.
+            // Pero como estamos offline, refrescarCarrito fallará.
+            // Vamos a vaciar el DOM del carrito manualmente.
+            const container = document.getElementById('carrito-container');
+            if (container) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-300 uppercase font-black text-[10px]">Carrito Vacío (Offline)</div>`;
+            }
+
+            this.isProcessing = false;
+        },
+
                 async cerrarDiaOperativo() {
-                    const { isConfirmed } = await Swal.fire({
-                        title: '¿Cerrar Día Operativo?',
-                        text: "Esta acción marcará el fin de las operaciones de hoy. Las ventas posteriores se asignarán al siguiente día contable.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonText: 'SÍ, CERRAR DÍA',
-                        cancelButtonText: 'CANCELAR',
-                        confirmButtonColor: '#e11d48',
-                    });
+            const { isConfirmed } = await Swal.fire({
+                title: '¿Cerrar Día Operativo?',
+                text: "Esta acción marcará el fin de las operaciones de hoy. Las ventas posteriores se asignarán al siguiente día contable.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, CERRAR DÍA',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#e11d48',
+            });
 
-                    if (isConfirmed) {
-                        try {
-                            const response = await fetch('{{ route("pos.cerrar-dia") }}', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                                }
-                            });
-                            const data = await response.json();
-
-                            if (data.success) {
-                                Swal.fire('Día Cerrado', data.message, 'success').then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire('Error', data.message, 'error');
-                            }
-                        } catch (e) {
-                            Swal.fire('Error', 'No se pudo procesar el cierre de día.', 'error');
+            if (isConfirmed) {
+                try {
+                    const response = await fetch('{{ route("pos.cerrar-dia") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                         }
+                    });
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire('Día Cerrado', data.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
                     }
+                } catch (e) {
+                    Swal.fire('Error', 'No se pudo procesar el cierre de día.', 'error');
                 }
+            }
+        }
             };
         }
     </script>

@@ -11,10 +11,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use App\Traits\HasEmpresaScope;
+
 #[ObservedBy(CajaObserver::class)]
 class Caja extends Model
 {
-    use HasFactory;
+    use HasFactory, HasEmpresaScope;
 
     protected $fillable = [
         'empresa_id',
@@ -84,20 +86,6 @@ class Caja extends Model
     public function ventas(): HasMany
     {
         return $this->hasMany(Venta::class);
-    }
-
-    /**
-     * Global scope: Filtrar cajas por empresa del usuario autenticado
-     */
-    protected static function booted(): void
-    {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check()) {
-                $query->where($query->getModel()->qualifyColumn('empresa_id'), auth()->user()->empresa_id);
-            } elseif (!app()->runningInConsole()) {
-                // abort(403, 'Acceso no autorizado a datos de empresa.');
-            }
-        });
     }
 
     /**

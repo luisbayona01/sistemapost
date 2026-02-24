@@ -22,6 +22,16 @@ class Funcion extends Model
         'precio' => 'decimal:2',
     ];
 
+    public function getFechaAttribute()
+    {
+        return $this->fecha_hora->format('Y-m-d');
+    }
+
+    public function getHoraInicioAttribute()
+    {
+        return $this->fecha_hora->format('H:i');
+    }
+
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class);

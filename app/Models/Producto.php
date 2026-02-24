@@ -11,13 +11,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 use App\Traits\HasEmpresaScope;
+use App\Traits\HasAuditForge;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use App\Observers\ProductoObserver;
 
 #[ObservedBy(ProductoObserver::class)]
 class Producto extends Model
 {
-    use HasFactory, HasEmpresaScope;
+    use HasFactory, HasEmpresaScope, HasAuditForge;
 
     protected $guarded = ['id', 'stock_actual'];
 

@@ -14,11 +14,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 use App\Traits\HasEmpresaScope;
+use App\Traits\HasAuditForge;
 
 #[ObservedBy(VentaObserver::class)]
 class Venta extends Model
 {
-    use HasFactory, HasEmpresaScope;
+    use HasFactory, HasEmpresaScope, HasAuditForge;
 
     protected $guarded = ['id'];
 

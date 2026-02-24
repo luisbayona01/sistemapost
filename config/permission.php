@@ -13,7 +13,7 @@ return [
          * `Spatie\Permission\Contracts\Permission` contract.
          */
 
-        'permission' => Spatie\Permission\Models\Permission::class,
+        'permission' => App\Models\Permission::class,
 
         /*
          * When using the "HasRoles" trait from this package, we need to know which
@@ -24,7 +24,7 @@ return [
          * `Spatie\Permission\Contracts\Role` contract.
          */
 
-        'role' => Spatie\Permission\Models\Role::class,
+        'role' => App\Models\Role::class,
 
     ],
 
@@ -93,7 +93,7 @@ return [
          * foreign key is other than `team_id`.
          */
 
-        'team_foreign_key' => 'team_id',
+        'team_foreign_key' => 'empresa_id',
     ],
 
     /*
@@ -111,7 +111,7 @@ return [
      * 'model_has_permissions'(view the latest version of package's migration file)
      */
 
-    'teams' => false,
+    'teams' => true,
 
     /*
      * When set to true, the required permission names are added to the exception

@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\HasEmpresaScope;
 
 class RuleExecution extends Model
 {
+    use HasEmpresaScope;
+
     protected $table = 'rule_executions';
 
     public $timestamps = false;

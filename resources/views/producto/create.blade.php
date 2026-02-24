@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gestión de Productos & Snacks')@push('css')
+@section('title', 'Gestión de Productos')@push('css')
     <style>
         #descripcion {
             resize: none;
@@ -13,11 +13,11 @@
 
 @section('content')
     <div class="w-full px-4 md:px-6 py-4">
-        <h1 class="text-3xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Registrar Nuevo Producto / Snack</h1>
+        <h1 class="text-3xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Registrar Nuevo Producto</h1>
 
         <x-breadcrumb.template class="mb-6">
             <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Inicio" />
-            <x-breadcrumb.item :href="route('productos.index')" content="Dulcería" />
+            <x-breadcrumb.item :href="route('productos.index')" content="Productos" />
             <x-breadcrumb.item active='true' content="Nuevo Registro" />
         </x-breadcrumb.template>
 

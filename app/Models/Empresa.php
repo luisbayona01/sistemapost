@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+use App\Traits\SectorAware;
+
 class Empresa extends Model
 {
-    use HasFactory;
+    use HasFactory, SectorAware;
 
     protected $guarded = ['id'];
 
@@ -45,6 +47,14 @@ class Empresa extends Model
     public function getSimboloAttribute(): string
     {
         return $this->moneda->simbolo ?? '$';
+    }
+
+    /**
+     * Obtener la URL del logo
+     */
+    public function getLogoUrlAttribute(): string
+    {
+        return $this->logo ? asset('storage/' . $this->logo) : asset('assets/img/logo-default.png');
     }
 
     /**
@@ -292,6 +302,22 @@ class Empresa extends Model
     public function scopeWithExpiredSubscription($query)
     {
         return $query->whereIn('estado_suscripcion', ['past_due', 'cancelled']);
+    }
+
+    /**
+     * Check if company sector is cinema
+     */
+    public function isCinema(): bool
+    {
+        return ($this->sector ?? 'cine') === 'cine';
+    }
+
+    /**
+     * Check if company sector is veterinaria
+     */
+    public function isVeterinaria(): bool
+    {
+        return ($this->sector ?? 'cine') === 'veterinaria';
     }
 }
 

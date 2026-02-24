@@ -11,8 +11,29 @@
                         :href="route('admin.dashboard.index')" class="text-white hover:text-emerald-400" />
 
                     @if(auth()->user()->hasRole('Root'))
-                        <x-nav.nav-link content='Módulos del Sistema' icon='fas fa-cubes' :href="route('admin.modulos.index')"
-                            class="text-emerald-400 font-bold" />
+                        <div
+                            class="px-3 py-3 mb-2 bg-gradient-to-r from-blue-900 to-slate-800 rounded-xl border border-blue-500/30">
+                            <x-nav.nav-link content='Panel Maestro (GOD)' icon='fas fa-user-shield text-blue-400'
+                                :href="route('root.dashboard')" class="text-blue-200 font-black" />
+
+                            @if(session()->has('original_user'))
+                                <a href="{{ route('root.stop-impersonate') }}"
+                                    class="flex items-center gap-2 px-3 py-2 mt-2 bg-red-500/20 text-red-400 rounded-lg text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Detener Intervención
+                                </a>
+                            @endif
+                        </div>
+                    @else
+                        @if(session()->has('original_user'))
+                            <div class="px-3 py-3 mb-2 bg-red-900/30 rounded-xl border border-red-500/30">
+                                <a href="{{ route('root.stop-impersonate') }}"
+                                    class="flex items-center gap-2 px-3 py-2 bg-red-500 text-white rounded-lg text-[10px] font-black uppercase hover:bg-red-600 transition-all">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Detener Intervención
+                                </a>
+                            </div>
+                        @endif
                     @endif
                     @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
                         <x-nav.nav-link content='Control Ejecutivo (Móvil)' icon='fas fa-mobile-alt text-emerald-400'
@@ -30,7 +51,7 @@
             @endif
 
             <!-- Módulo CINE -->
-            @if(\App\Helpers\ModuleHelper::isEnabled('cinema'))
+            @if(\App\Helpers\ModuleHelper::isEnabled('cinema') && auth()->user()->empresa->isCinema())
                 <div class="pt-2">
                     <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Boletería & Cine</p>
 
@@ -58,18 +79,34 @@
                 </div>
             @endif
 
+            <!-- Módulo VETERINARIA -->
+            @if(auth()->user()->empresa->isVeterinaria())
+                <div class="pt-2">
+                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Clínica & Servicios</p>
+
+                    <div class="px-3 py-2 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <x-nav.nav-link content='Fichas Clínicas' icon='fas fa-notes-medical'
+                            :href="route('admin.dashboard.index')" />
+                        <x-nav.nav-link content='Citas Médicas' icon='fas fa-stethoscope'
+                            :href="route('admin.dashboard.index')" />
+                        <x-nav.nav-link content='Mascotas / Pacientes' icon='fas fa-paw' :href="route('clientes.index')" />
+                    </div>
+                </div>
+            @endif
+
             <!-- Inventario & Productos -->
             @if(\App\Helpers\ModuleHelper::isEnabled('pos') || \App\Helpers\ModuleHelper::isEnabled('inventory'))
                 <div class="pt-2">
-                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Dulcería & Snacks</p>
+                    <p class="px-3 text-xs font-black text-slate-500 uppercase tracking-widest mb-2">
+                        {{ auth()->user()->empresa->isCinema() ? 'Productos & Dulcería' : 'Inventario & Farmacia' }}
+                    </p>
 
                     @can('ver-producto')
-                        <x-nav.nav-link content='Productos (Dulcería)' icon='fas fa-cookie-bite'
-                            :href="route('productos.index')" />
+                        <x-nav.nav-link content='Base de Datos' icon='fas fa-tag' :href="route('productos.index')" />
                     @endcan
 
                     @can('ver-inventario')
-                        <x-nav.nav-link content='Inventario / Stock' icon='fas fa-boxes' :href="route('inventario.index')" />
+                        <x-nav.nav-link content='Stock Actual' icon='fas fa-boxes' :href="route('inventario.index')" />
                         <x-nav.nav-link content='Carga Masiva (Excel)' icon='fas fa-file-import'
                             :href="route('inventario.carga-masiva.index')" />
                     @endcan
@@ -77,17 +114,17 @@
                     @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
                         <x-nav.nav-link content='Facturas de Compra' icon='fas fa-file-invoice-dollar'
                             :href="route('admin.facturas.index')" />
-                        <x-nav.nav-link content='Proveedores (General)' icon='fas fa-id-card'
-                            :href="route('proveedores.index')" />
+                        <x-nav.nav-link content='Proveedores' icon='fas fa-id-card' :href="route('proveedores.index')" />
                     @endif
 
                     @can('ver-inventario')
                         @if(\App\Helpers\ModuleHelper::isEnabled('inventory'))
                             <x-nav.link-collapsed id="collapseConfiteria" icon="fa-solid fa-boxes-stacked"
-                                content="Gestión de Insumos">
+                                content="{{ auth()->user()->empresa->isCinema() ? 'Insumos Dulcería' : 'Insumos / Recetas' }}">
                                 <x-nav.link-collapsed-item :href="route('inventario-avanzado.index')" content="Escritorio IA" />
-                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.almacen')" content="Inventario" />
-                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.cocina')" content="Costos y Recetas" />
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.almacen')" content="Gestión Almacén" />
+                                <x-nav.link-collapsed-item :href="route('inventario-avanzado.cocina')"
+                                    content="Costos Elaboración" />
                                 <x-nav.link-collapsed-item :href="route('inventario-avanzado.auditoria')"
                                     content="Auditoría de Fugas" />
                             </x-nav.link-collapsed>
@@ -116,7 +153,7 @@
                             <x-nav.link-collapsed-item :href="route('admin.reportes.consolidado')"
                                 content="Reporte de Ventas" />
 
-                            @if(\App\Helpers\ModuleHelper::isEnabled('cinema'))
+                            @if(\App\Helpers\ModuleHelper::isEnabled('cinema') && auth()->user()->empresa->isCinema())
                                 <x-nav.link-collapsed-item :href="route('admin.reportes.cinema')" content="Ocupación de Cine" />
                                 <x-nav.link-collapsed-item :href="route('admin.reportes.peliculas')"
                                     content="Ventas por Película" />
@@ -124,7 +161,7 @@
 
                             @if(\App\Helpers\ModuleHelper::isEnabled('pos'))
                                 <x-nav.link-collapsed-item :href="route('admin.reportes.confiteria')"
-                                    content="Ventas de Dulcería" />
+                                    content="{{ auth()->user()->empresa->isCinema() ? 'Ventas por Dulcería' : 'Ventas por Categoría' }}" />
                             @endif
                         </x-nav.link-collapsed>
                     @endif
@@ -140,8 +177,11 @@
                         @if(auth()->user()->hasRole(['Root', 'Gerente', 'administrador']))
                             <x-nav.nav-link content='Cierre de Jornada' icon='fas fa-check-double'
                                 :href="route('admin.cajas.cierre-dia')" />
-                            <x-nav.nav-link content='Reporte Fiscal INC' icon='fas fa-file-invoice'
-                                :href="route('reports.fiscal.inc')" />
+                            
+                            @if(auth()->user()->empresa->isCinema())
+                                <x-nav.nav-link content='Reporte Fiscal INC' icon='fas fa-file-invoice'
+                                    :href="route('reports.fiscal.inc')" />
+                            @endif
                         @endif
                     </div>
                 </div>

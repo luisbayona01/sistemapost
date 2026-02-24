@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Catálogo de Dulcería')
+@section('title', 'Catálogo de Productos')
 
 @push('css-datatable')
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
@@ -13,22 +13,31 @@
 @section('content')
 
     <div class="w-full px-4 md:px-6 py-4">
-        <h1 class="text-3xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Catálogo de Dulcería & Snacks</h1>
+        <h1 class="text-3xl font-black text-slate-900 mb-6 uppercase tracking-tighter">Catálogo de Productos & Servicios
+        </h1>
 
         <x-breadcrumb.template class="mb-6">
             <x-breadcrumb.item :href="route('admin.dashboard.index')" content="Panel" />
-            <x-breadcrumb.item active='true' content="Dulcería" />
+            <x-breadcrumb.item active='true' content="Productos" />
         </x-breadcrumb.template>
 
-        @can('crear-producto')
-            <div class="mb-6">
-                <a href="{{route('productos.create')}}">
-                    <button type="button"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors">Añadir
-                        nuevo registro</button>
+        <div class="mb-6 flex flex-wrap gap-3">
+            @can('crear-producto')
+                <a href="{{route('productos.create')}}"
+                    class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-blue-200">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Producto
                 </a>
-            </div>
-        @endcan
+            @endcan
+
+            @can('crear-categoria')
+                <a href="{{route('categorias.create')}}"
+                    class="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-slate-200">
+                    <i class="fas fa-folder-plus"></i>
+                    Nueva Categoría
+                </a>
+            @endcan
+        </div>
 
         <div class="bg-white rounded-lg shadow">
             <div class="bg-gray-100 border-b border-gray-300 px-6 py-3 font-semibold text-gray-900 flex items-center">

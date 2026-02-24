@@ -2,31 +2,30 @@
 
 namespace App\Traits;
 
-use Illuminate\Database\Eloquent\Builder;
+use App\Scopes\HasEmpresaScope as ScopeClass;
 
 trait HasEmpresaScope
 {
+    /**
+     * Boot the trait and apply the global scope.
+     */
     protected static function bootHasEmpresaScope()
     {
-        static::addGlobalScope('empresa', function (Builder $query) {
-            if (auth()->check()) {
-                if (!auth()->user()->hasRole('Root')) {
-                    $query->where($query->getModel()->qualifyColumn('empresa_id'), auth()->user()->empresa_id);
-                }
-            } elseif (!app()->runningInConsole()) {
-                // abort(403, 'Acceso no autorizado a datos de empresa.');
-            }
-        });
+        static::addGlobalScope(new ScopeClass);
 
+        // Auto-asignar empresa_id al crear registros
         static::creating(function ($model) {
-            if (auth()->check() && !$model->empresa_id) {
+            if (auth()->check() && empty($model->empresa_id)) {
                 $model->empresa_id = auth()->user()->empresa_id;
             }
         });
     }
 
+    /**
+     * Scope helper para filtrar manualmente por empresa ignorando el scope global.
+     */
     public function scopeForEmpresa($query, int $empresaId)
     {
-        return $query->withoutGlobalScope('empresa')->where('empresa_id', $empresaId);
+        return $query->withoutGlobalScope(ScopeClass::class)->where('empresa_id', $empresaId);
     }
 }

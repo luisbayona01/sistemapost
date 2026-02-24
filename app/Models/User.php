@@ -4,6 +4,8 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasTwoFactor;
+
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -11,9 +13,12 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
+use App\Traits\SectorAware;
+
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, HasTwoFactor, SectorAware;
+
 
     /**
      * The attributes that are mass assignable.
@@ -78,4 +83,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(ActivityLog::class);
     }
+
+    /**
+     * Verificar si el usuario es Super Admin.
+     */
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('Root') || $this->hasRole('Super Admin');
+    }
 }
+

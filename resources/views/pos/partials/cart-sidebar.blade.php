@@ -3,6 +3,8 @@
     <span class="bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-black">
         {{ count($carrito['boletos']) + count($carrito['productos']) }} Items
     </span>
+    <!-- Data for Offline Processing -->
+    <script id="cart-data-json" type="application/json">@json($carrito)</script>
 </div>
 
 <!-- Lista de Items en el Carrito -->

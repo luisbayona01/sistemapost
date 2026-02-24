@@ -197,6 +197,7 @@ return [
         App\Providers\FiscalServiceProvider::class,
 
         Spatie\Permission\PermissionServiceProvider::class,
+        Spatie\Backup\BackupServiceProvider::class,
 
     ],
 

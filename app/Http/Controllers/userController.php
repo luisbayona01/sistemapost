@@ -30,9 +30,10 @@ class UserController extends Controller
      */
     public function index(): View
     {
-        $users = User::whereDoesntHave('roles', function ($query) {
-            $query->where('name', 'administrador');
-        })
+        $users = User::where('empresa_id', auth()->user()->empresa_id)
+            ->whereDoesntHave('roles', function ($query) {
+                $query->where('name', 'administrador');
+            })
             ->latest()
             ->get();
 
@@ -56,8 +57,11 @@ class UserController extends Controller
     {
         DB::beginTransaction();
         try {
-            $request->merge(['password' => Hash::make($request->password)]);
-            $user = User::create($request->all());
+            $data = $request->except(['empresa_id']);
+            $data['password'] = Hash::make($request->password);
+            $data['empresa_id'] = auth()->user()->empresa_id;
+
+            $user = User::create($data);
             $user->assignRole($request->role);
 
             DB::commit();

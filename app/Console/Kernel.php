@@ -43,6 +43,26 @@ class Kernel extends ConsoleKernel
         $schedule->command('fiscal:procesar-contingencias')
             ->everyFifteenMinutes()
             ->withoutOverlapping();
+
+        // 🏥 SALUD MULTI-TENANT: Verificar integridad cada lunes 8 AM
+        $schedule->command('health:multi-tenant')
+            ->weekly()
+            ->mondays()
+            ->at('08:00')
+            ->appendOutputTo(storage_path('logs/multi-tenant-health.log'));
+
+        // 💾 COPIAS DE SEGURIDAD (Fase 7.5 - Tenant-Aware)
+        $schedule->command('backup:tenant')
+            ->dailyAt('03:00')
+            ->withoutOverlapping();
+
+        $schedule->command('backup:run --only-files')
+            ->weeklyOn(0, '03:30')
+            ->withoutOverlapping();
+
+        $schedule->command('backup:clean')
+            ->dailyAt('04:00')
+            ->withoutOverlapping();
     }
 
     /**

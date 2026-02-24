@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasEmpresaScope;
 use Carbon\Carbon;
 
 class DocumentoFiscal extends Model
 {
+    use HasEmpresaScope;
+
     protected $table = 'documentos_fiscales';
 
     protected $fillable = [

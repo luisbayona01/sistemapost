@@ -22,6 +22,16 @@ class Pelicula extends Model
         'activo' => 'boolean',
     ];
 
+    public function getNombreAttribute()
+    {
+        return $this->titulo;
+    }
+
+    public function getImgPathAttribute()
+    {
+        return $this->afiche;
+    }
+
     /*
      * Relaciones
      */

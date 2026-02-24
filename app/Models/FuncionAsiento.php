@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Builder;
 use Carbon\Carbon;
 
+use App\Traits\HasEmpresaScope;
+
 class FuncionAsiento extends Model
 {
+    use HasEmpresaScope;
     // ========================================
     // CONSTANTES DE ESTADO (FUENTE DE VERDAD)
     // ========================================

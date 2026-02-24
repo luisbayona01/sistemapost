@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasEmpresaScope;
 
 class Rule extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasEmpresaScope;
 
     protected $table = 'rules';
 

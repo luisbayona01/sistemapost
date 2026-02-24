@@ -28,6 +28,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\POS\CashierController;
 use App\Http\Controllers\DevolucionController;
+use App\Http\Controllers\PublicCarteleraController;
+use App\Http\Controllers\PublicReservaController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\ExecutiveController;
 use App\Http\Controllers\Reports\FiscalReportController;
@@ -47,9 +49,17 @@ use Illuminate\Support\Facades\Route;
 
 // ==================== Landing & Authentication ====================
 
-// Landing page (new controller)
-Route::get('/', [LandingController::class, 'index'])->name('landing');
-Route::get('/landing', [LandingController::class, 'index']); // Safety alias
+// ==================== Web Pública & Reservas ====================
+Route::middleware('identify.tenant')->group(function () {
+    Route::get('/', [PublicCarteleraController::class, 'index'])->name('public.cartelera');
+    Route::get('/funcion/{id}', [PublicCarteleraController::class, 'show'])->name('public.funcion');
+    Route::post('/reservar', [PublicReservaController::class, 'store'])->name('public.reserva.store');
+    Route::get('/checkout', [PublicReservaController::class, 'checkout'])->name('public.checkout');
+    Route::post('/pagar', [PublicReservaController::class, 'pagar'])->name('public.pagar');
+});
+
+// Landing page alias (in case it's needed explicitly)
+Route::get('/landing', [LandingController::class, 'index'])->name('landing');
 
 // Registro de empresa
 Route::get('/register', [RegisterController::class, 'create'])->name('register.create');
@@ -348,21 +358,51 @@ Route::middleware(['auth'])->group(function () {
 
     // ==================== ROOT CONSOLE (Super User Only) ====================
     Route::group(['middleware' => ['auth', 'role:Root'], 'prefix' => 'admin/root', 'as' => 'root.'], function () {
+
+        // Dashboard
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+        // Gestión de Empresas
+        Route::get('/empresas', [SuperAdminEmpresasController::class, 'index'])->name('empresas.index');
+        Route::get('/empresas/crear', [SuperAdminEmpresasController::class, 'create'])->name('empresas.create');
+        Route::post('/empresas', [SuperAdminEmpresasController::class, 'store'])->name('empresas.store');
+        Route::get('/empresas/{empresa}', [SuperAdminEmpresasController::class, 'show'])->name('empresas.show');
+        Route::post('/empresas/{empresa}/suspend', [SuperAdminEmpresasController::class, 'suspend'])->name('empresas.suspend');
+        Route::post('/empresas/{empresa}/activate', [SuperAdminEmpresasController::class, 'activate'])->name('empresas.activate');
+        Route::post('/empresas/{empresa}/modules', [SuperAdminEmpresasController::class, 'updateModules'])->name('empresas.modules');
+
+        // Impersonación
+        Route::post('/impersonate/{user}', [SuperAdminEmpresasController::class, 'impersonate'])->name('impersonate');
+        Route::post('/impersonate-empresa/{empresa}', [SuperAdminEmpresasController::class, 'impersonateEmpresa'])->name('impersonate-empresa');
+
+        // Log de Actividad
         Route::resource('activity-log', ActivityLogController::class)->only('index');
 
         // Auto-Backup Trigger
         Route::get('/backup/run', function () {
-            // Simulator of Backup logic
             try {
-                // \Artisan::call('backup:run'); // Requires spatie/laravel-backup or similar
-                // For now, we log the attempt
-                \App\Services\ActivityLogService::log('Backup Manual Solicitado', 'System', ['initiator' => auth()->user()->id]);
-                return redirect()->back()->with('success', 'Backup del sistema iniciado en segundo plano.');
+                \Artisan::call('backup:run');
+                \App\Services\ActivityLogService::log('Backup Manual Ejecutado con Éxito', 'System', ['initiator' => auth()->user()->id]);
+                return redirect()->back()->with('success', 'Backup del sistema completado con éxito.');
             } catch (\Exception $e) {
                 return redirect()->back()->with('error', 'Error al iniciar backup: ' . $e->getMessage());
             }
         })->name('backup.run');
+
+        // 🚀 FASE 7.3: BÓVEDA DE AUDITORÍA FORENSE
+        Route::get('/audit', [\App\Http\Controllers\SuperAdmin\AuditController::class, 'index'])->name('audit.index');
+        Route::get('/audit/{id}/verify', [\App\Http\Controllers\SuperAdmin\AuditController::class, 'verify'])->name('audit.verify');
     });
+
+    // Ruta global para detener impersonación
+    Route::get('/stop-impersonate', function () {
+        if (session()->has('original_user')) {
+            $originalId = session()->pull('original_user');
+            Auth::loginUsingId($originalId);
+            return redirect()->route('root.dashboard')->with('success', 'Vuelto al panel central.');
+        }
+        return redirect('/');
+    })->name('root.stop-impersonate');
 
     // ==========================================
     // MÓDULO 2: REPORTES INTELIGENTES (Gerente/Root)

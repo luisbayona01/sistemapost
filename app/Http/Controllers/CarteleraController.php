@@ -12,13 +12,11 @@ class CarteleraController extends Controller
     /**
      * Mostrar la cartelera pública de funciones
      */
-    public function index()
+    public function index(Request $request)
     {
-        $empresaId = 1; // Default
-
-        // Optimización Eager Loading
+        // El TenantResolver middleware ya puso 'currentTenant' en el app()
+        // y HasEmpresaScope filtrará automáticamente.
         $funciones = Funcion::with(['pelicula', 'sala'])
-            ->where('empresa_id', $empresaId)
             ->where('activo', true) // Solo activas
             ->where('fecha_hora', '>=', now()) // Solo futuras
             ->where('fecha_hora', '<=', now()->addDays(7)) // Próxima semana

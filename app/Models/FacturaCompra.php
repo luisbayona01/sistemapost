@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasEmpresaScope;
 
 class FacturaCompra extends Model
 {
+    use HasEmpresaScope;
+
     protected $table = 'facturas_compra';
 
     protected $fillable = [
